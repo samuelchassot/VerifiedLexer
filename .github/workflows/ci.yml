@@ -25,7 +25,7 @@ jobs:
 
       - name: Install CVC4
         run: |
-          apt-get install -y cvc4 
+          sudo apt-get install -y cvc4 
 
       - name: Install Stainless
         run: |
