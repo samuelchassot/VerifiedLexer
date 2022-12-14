@@ -8,7 +8,7 @@ on:
       - 'releases/**'
 
 jobs:
-  test-core:
+  verification:
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
@@ -26,6 +26,9 @@ jobs:
       - name: Install CVC4
         run: |
           sudo apt-get install -y cvc4 
+      - name: Install Z3
+        run: |
+          sudo apt-get install -y z3 
 
       - name: Install Stainless
         run: |
