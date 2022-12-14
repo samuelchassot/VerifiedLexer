@@ -41,7 +41,7 @@ object MainTest {
     // Regex to NFA tests
     val state = State(BigInt(1))
 
-    val output: List[Char] = Lexer.printBackWithSeparatorTokenWhenNeeded(rules, input, sepToken)
+    val output: List[Char] = Lexer.printWithSeparatorTokenWhenNeeded(rules, input, sepToken)
     println(output.foldLeft("")((s: String, c: Char) => s + c.toString))(state)
     // NFATests()(state)
 
@@ -151,7 +151,7 @@ object VerifiedFunLexer {
     def rulesProduceIndivualToken[C](rs: List[Rule[C]], t: Token[C]): Boolean = {
       require(!rs.isEmpty)
       require(rulesInvariant(rs))
-      val (producedTs, suffix) = lex(rs, printBack(List(t)))
+      val (producedTs, suffix) = lex(rs, print(List(t)))
       producedTs.size == 1 && producedTs.head == t && suffix.isEmpty
     }
 
@@ -214,7 +214,11 @@ object VerifiedFunLexer {
     def rulesInvariant[C](rules: List[Rule[C]]): Boolean =
       rulesValid(rules) && noDuplicateTag(rules, Nil())
 
-    /** Main function of the lexer Lexes the input list of characters using the set of rules Returns the produced list of Tokens and the remaining characters (normally empty)
+    /** Main function of the lexer
+      *
+      * It lexes the input list of characters using the set of rules
+      *
+      * It returns the produced list of Tokens and the remaining untokenised characters (normally empty)
       *
       * @param rules
       * @param input
@@ -244,9 +248,9 @@ object VerifiedFunLexer {
       *
       * @param l
       */
-    def printBack[C](l: List[Token[C]]): List[C] = {
+    def print[C](l: List[Token[C]]): List[C] = {
       l match {
-        case Cons(hd, tl) => hd.getCharacters ++ printBack(tl)
+        case Cons(hd, tl) => hd.getCharacters ++ print(tl)
         case Nil()        => Nil[C]()
       }
     }
@@ -256,10 +260,10 @@ object VerifiedFunLexer {
       * @param l
       * @param separatorToken
       */
-    def printBackWithSeparatorToken[C](l: List[Token[C]], separatorToken: Token[C]): List[C] = {
+    def printWithSeparatorToken[C](l: List[Token[C]], separatorToken: Token[C]): List[C] = {
       require(separatorToken.isSeparator)
       l match {
-        case Cons(hd, tl) => hd.getCharacters ++ separatorToken.getCharacters ++ printBackWithSeparatorToken(tl, separatorToken)
+        case Cons(hd, tl) => hd.getCharacters ++ separatorToken.getCharacters ++ printWithSeparatorToken(tl, separatorToken)
         case Nil()        => Nil[C]()
       }
     }
@@ -270,7 +274,7 @@ object VerifiedFunLexer {
       * @param l
       * @param separatorToken
       */
-    def printBackWithSeparatorTokenWhenNeeded[C](rules: List[Rule[C]], l: List[Token[C]], separatorToken: Token[C]): List[C] = {
+    def printWithSeparatorTokenWhenNeeded[C](rules: List[Rule[C]], l: List[Token[C]], separatorToken: Token[C]): List[C] = {
       require(!rules.isEmpty)
       require(rulesInvariant(rules))
       require(rulesProduceEachTokenIndividually(rules, l))
@@ -281,7 +285,7 @@ object VerifiedFunLexer {
 
       l match {
         case Cons(hd, tl) => {
-          val suffix = printBackWithSeparatorTokenWhenNeeded(rules, tl, separatorToken)
+          val suffix = printWithSeparatorTokenWhenNeeded(rules, tl, separatorToken)
           val maxPrefWithoutSep = findMaxPrefix(rules, hd.getCharacters ++ suffix)
           maxPrefWithoutSep match {
             case Some((t, s)) if t == hd => hd.getCharacters ++ suffix
@@ -447,14 +451,14 @@ object VerifiedFunLexer {
 
       tokens match {
         case Cons(hd, tl) => {
-          val input = printBackWithSeparatorTokenWhenNeeded(rules, tokens, separatorToken)
-          val suffixWithSep = separatorToken.getCharacters ++ printBackWithSeparatorTokenWhenNeeded(rules, tl, separatorToken)
-          ListUtils.lemmaTwoListsConcatAssociativity(hd.getCharacters, separatorToken.getCharacters, printBackWithSeparatorTokenWhenNeeded(rules, tl, separatorToken))
-          val suffixWithoutSep = printBackWithSeparatorTokenWhenNeeded(rules, tl, separatorToken)
+          val input = printWithSeparatorTokenWhenNeeded(rules, tokens, separatorToken)
+          val suffixWithSep = separatorToken.getCharacters ++ printWithSeparatorTokenWhenNeeded(rules, tl, separatorToken)
+          ListUtils.lemmaTwoListsConcatAssociativity(hd.getCharacters, separatorToken.getCharacters, printWithSeparatorTokenWhenNeeded(rules, tl, separatorToken))
+          val suffixWithoutSep = printWithSeparatorTokenWhenNeeded(rules, tl, separatorToken)
           assert(input == hd.getCharacters ++ suffixWithSep || input == hd.getCharacters ++ suffixWithoutSep)
 
           if (input == hd.getCharacters ++ suffixWithSep) {
-            val suffixAfterSep = printBackWithSeparatorTokenWhenNeeded(rules, tl, separatorToken)
+            val suffixAfterSep = printWithSeparatorTokenWhenNeeded(rules, tl, separatorToken)
             lemmaPrintWithSepTokenWhenNeededThenFindMaxPrefReturnsHead(rules, tokens, separatorToken)
             ListUtils.lemmaConcatTwoListThenFirstIsPrefix(hd.getCharacters, suffixWithSep)
             ListUtils.lemmaSamePrefixThenSameSuffix(hd.getCharacters, suffixWithSep, hd.getCharacters, findMaxPrefix(rules, input).get._2, input)
@@ -492,7 +496,7 @@ object VerifiedFunLexer {
         }
         case Nil() => ()
       }
-    } ensuring (lex(rules, printBackWithSeparatorTokenWhenNeeded(rules, tokens, separatorToken))._1.filter(!_.isSeparator) == tokens)
+    } ensuring (lex(rules, printWithSeparatorTokenWhenNeeded(rules, tokens, separatorToken))._1.filter(!_.isSeparator) == tokens)
 
     def theoremInvertFromTokensSepTokenBetweenEach[C](rules: List[Rule[C]], tokens: List[Token[C]], separatorToken: Token[C]): Unit = {
       require(!rules.isEmpty)
@@ -512,7 +516,7 @@ object VerifiedFunLexer {
         case Cons(hd, Nil()) => {
           ListSpecs.forallContained(tokens, (t: Token[C]) => !t.isSeparator, hd)
           assert(!hd.isSeparator)
-          val input = printBackWithSeparatorToken(tokens, separatorToken)
+          val input = printWithSeparatorToken(tokens, separatorToken)
           assert(input == hd.getCharacters ++ separatorToken.getCharacters)
           ListUtils.lemmaGetSuffixOnListWithItSelfIsEmpty(hd.getCharacters)
           lemmaRulesProduceEachTokenIndividuallyThenForAnyToken(rules, tokens, hd)
@@ -557,10 +561,10 @@ object VerifiedFunLexer {
           ListSpecs.forallContained(tokens, (t: Token[C]) => !t.isSeparator, nextT)
           assert(!hd.isSeparator)
           assert(!nextT.isSeparator)
-          val input = printBackWithSeparatorToken(tokens, separatorToken)
-          val suffixAfterSeparator = printBackWithSeparatorToken(Cons(nextT, tl), separatorToken)
+          val input = printWithSeparatorToken(tokens, separatorToken)
+          val suffixAfterSeparator = printWithSeparatorToken(Cons(nextT, tl), separatorToken)
           val suffix = separatorToken.getCharacters ++ suffixAfterSeparator
-          assert(suffixAfterSeparator == nextT.getCharacters ++ separatorToken.getCharacters ++ printBackWithSeparatorToken(tl, separatorToken))
+          assert(suffixAfterSeparator == nextT.getCharacters ++ separatorToken.getCharacters ++ printWithSeparatorToken(tl, separatorToken))
           assert(input == hd.getCharacters ++ separatorToken.getCharacters ++ suffixAfterSeparator)
           ListUtils.lemmaTwoListsConcatAssociativity(hd.getCharacters, separatorToken.getCharacters, suffixAfterSeparator)
           assert(input == hd.getCharacters ++ suffix)
@@ -578,7 +582,7 @@ object VerifiedFunLexer {
             check(false)
           }
 
-          assert(suffixAfterSeparator == nextT.getCharacters ++ separatorToken.getCharacters ++ printBackWithSeparatorToken(tl, separatorToken))
+          assert(suffixAfterSeparator == nextT.getCharacters ++ separatorToken.getCharacters ++ printWithSeparatorToken(tl, separatorToken))
           lemmaNonSepRuleNotContainsCharContainedInASepRule(rules, rules, rule, separatorRule, separatorToken.getCharacters.head)
 
           lemmaMaxPrefWithOtherTypeUsedCharAtStartOfSuffixReturnSame(rules, hd, rule, suffix, separatorRule)
@@ -604,7 +608,7 @@ object VerifiedFunLexer {
         }
       }
 
-    } ensuring (lex(rules, printBackWithSeparatorToken(tokens, separatorToken))._1.filter(!_.isSeparator) == tokens)
+    } ensuring (lex(rules, printWithSeparatorToken(tokens, separatorToken))._1.filter(!_.isSeparator) == tokens)
 
     def theoremInvertFromString[C](rules: List[Rule[C]], input: List[C]): Unit = {
       require(!rules.isEmpty)
@@ -620,25 +624,25 @@ object VerifiedFunLexer {
         }
       } else {
         tokens match {
-          case Cons(hd, Nil()) => assert(printBack(tokens) ++ suffix == input)
+          case Cons(hd, Nil()) => assert(print(tokens) ++ suffix == input)
           case Cons(hd, tl) => {
             theoremInvertFromString(rules, findMaxPrefix(rules, input).get._2)
             lemmaRemovingFirstTokensCharactersPreservesLexSuffix(rules, input, tokens, suffix)
 
             assert(input == findMaxPrefix(rules, input).get._1.getCharacters ++ findMaxPrefix(rules, input).get._2)
-            assert(input == findMaxPrefix(rules, input).get._1.getCharacters ++ (printBack(tl) ++ suffix))
+            assert(input == findMaxPrefix(rules, input).get._1.getCharacters ++ (print(tl) ++ suffix))
             ListUtils.lemmaTwoListsConcatAssociativity(
               findMaxPrefix(rules, input).get._1.getCharacters,
-              printBack(tl),
+              print(tl),
               suffix
             )
           }
-          case Nil() => assert(printBack(tokens) ++ suffix == input)
+          case Nil() => assert(print(tokens) ++ suffix == input)
         }
       }
     } ensuring ({
       val (tokens, suffix) = lex(rules, input)
-      printBack(tokens) ++ suffix == input
+      print(tokens) ++ suffix == input
     })
 
     // Functions -----------------------------------------------------------------------------------------------------------------------------
@@ -674,7 +678,7 @@ object VerifiedFunLexer {
           lemmaMaxPrefReturnTokenSoItsTagBelongsToARule(rules, hd.getCharacters, hd)
           val rule = getRuleFromTag(rules, hd.getTag).get
 
-          val suffix = printBackWithSeparatorTokenWhenNeeded(rules, tl, separatorToken)
+          val suffix = printWithSeparatorTokenWhenNeeded(rules, tl, separatorToken)
           val maxPrefWithoutSep = findMaxPrefix(rules, hd.getCharacters ++ suffix)
           maxPrefWithoutSep match {
             case Some((t, s)) if t == hd => ()
@@ -700,8 +704,8 @@ object VerifiedFunLexer {
 
     } ensuring (tokens.isEmpty ||
       (!tokens.isEmpty &&
-        findMaxPrefix(rules, printBackWithSeparatorTokenWhenNeeded(rules, tokens, separatorToken)).isDefined &&
-        findMaxPrefix(rules, printBackWithSeparatorTokenWhenNeeded(rules, tokens, separatorToken)).get._1 == tokens.head))
+        findMaxPrefix(rules, printWithSeparatorTokenWhenNeeded(rules, tokens, separatorToken)).isDefined &&
+        findMaxPrefix(rules, printWithSeparatorTokenWhenNeeded(rules, tokens, separatorToken)).get._1 == tokens.head))
 
     def lemmaMaxPrefWithOtherTypeUsedCharAtStartOfSuffixReturnSame[C](rules: List[Rule[C]], token: Token[C], rule: Rule[C], suffix: List[C], anOtherTypeRule: Rule[C]): Unit = {
       require(!rules.isEmpty)
@@ -995,10 +999,10 @@ object VerifiedFunLexer {
 
     } ensuring (findMaxPrefix(rules, token.getCharacters ++ suffix) == Some((token, suffix)))
 
-    def lemmaPrintBackHeadIsPrefixOfPrintBackList[C](ts: List[Token[C]]): Unit = {
+    def lemmaprintHeadIsPrefixOfprintList[C](ts: List[Token[C]]): Unit = {
       require(!ts.isEmpty)
-      ListUtils.lemmaConcatTwoListThenFirstIsPrefix(printBack(List(ts.head)), printBack(ts.tail))
-    } ensuring (ListUtils.isPrefix(printBack(List(ts.head)), printBack(ts)))
+      ListUtils.lemmaConcatTwoListThenFirstIsPrefix(print(List(ts.head)), print(ts.tail))
+    } ensuring (ListUtils.isPrefix(print(List(ts.head)), print(ts)))
 
     def lemmaLexIsDefinedWithStrThenLexWithSuffixIsDefined[C](rules: List[Rule[C]], input: List[C], suffix: List[C]): Unit = {
       require(!rules.isEmpty)
