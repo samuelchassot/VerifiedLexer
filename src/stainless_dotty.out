@@ -1,0 +1,599 @@
+❯ stainless-dotty VerifiedRegexMatcher.scala  ListUtils.scala VerifiedNFA.scala VerifiedFunLexer.scala -Dparallel=3 --config-file=stainless.conf
+[  Info  ] Starting verification...
+[  Info  ] Verified: 76 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1332.63: std::bad_alloc
+[  Info  ] Verified: 78 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1036.63: std::bad_alloc
+[  Info  ] Verified: 80 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '�' at (1008, 54): not a valid start for a token
+[  Info  ] Verified: 82 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '�' at (975, 191): not a valid start for a token
+[  Info  ] Verified: 83 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:3738.64: std::bad_alloc
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1002.64: std::bad_alloc
+[  Info  ] Verified: 90 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:2471.64: std::bad_alloc
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1681.64: std::bad_alloc
+[  Info  ] Verified: 92 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:2495.64: std::bad_alloc
+[  Info  ] Verified: 97 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '' at (812, 160): not a valid start for a token
+[  Info  ] Verified: 103 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1706.64: std::bad_alloc
+[  Info  ] Verified: 105 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.parser.Parser$UnexpectedTokenException: Unexpected token at position: (1400, 224). Expected: [CParen]. Found: z
+[  Info  ] Verified: 111 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:2278.64: std::bad_alloc
+[  Info  ] Verified: 114 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:3730.64: std::bad_alloc
+[  Info  ] Verified: 120 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1743.64: std::bad_alloc
+[  Info  ] Verified: 122 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '' at (1101, 16435): not a valid start for a token
+[  Info  ] Verified: 128 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:2821.64: std::bad_alloc
+[  Info  ] Verified: 131 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1579.64: std::bad_alloc
+[  Info  ] Verified: 133 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1210.64: std::bad_alloc
+[  Info  ] Verified: 136 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:2070.64: std::bad_alloc
+[  Info  ] Verified: 139 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:3802.64: std::bad_alloc
+[  Info  ] Verified: 140 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:5094.64: std::bad_alloc
+[  Info  ] Verified: 146 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '�' at (1013, 15722): not a valid start for a token
+[  Info  ] Verified: 153 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '' at (2198, 210): not a valid start for a token
+[  Info  ] Verified: 157 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: ']' at (1917, 1743): not a valid start for a token
+[  Info  ] Verified: 166 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:4036.64: std::bad_alloc
+[  Info  ] Verified: 167 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '' at (1821, 2016): not a valid start for a token
+[  Info  ] Verified: 187 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1870.64: std::bad_alloc
+[  Info  ] Verified: 190 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '�' at (2002, 2686): not a valid start for a token
+[  Info  ] Verified: 194 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:3110.64: std::bad_alloc
+[  Info  ] Verified: 196 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:2650.64: std::bad_alloc
+[  Info  ] Verified: 197 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '' at (1192, 1963): not a valid start for a token
+[  Info  ] Verified: 198 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:2420.64: std::bad_alloc
+[  Info  ] Verified: 199 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:2668.64: std::bad_alloc
+[  Info  ] Verified: 200 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1927.64: std::bad_alloc
+[  Info  ] Verified: 244 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1799.64: std::bad_alloc
+[  Info  ] Verified: 280 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '�' at (12202, 62): not a valid start for a token
+[  Info  ] Verified: 285 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:25453.64: std::bad_alloc
+[  Info  ] Verified: 308 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1164.64: std::bad_alloc
+[  Info  ] Verified: 310 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:3862.64: std::bad_alloc
+[  Info  ] Verified: 312 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:4035.64: std::bad_alloc
+[  Info  ] Verified: 453 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '�' at (563, 19672): not a valid start for a token
+[  Info  ] Verified: 454 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:3579.64: std::bad_alloc
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '' at (2476, 4944): not a valid start for a token
+[  Info  ] Verified: 459 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:6943.64: std::bad_alloc
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:8267.64: std::bad_alloc
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:4235.64: std::bad_alloc
+[  Info  ] Verified: 463 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:3144.64: std::bad_alloc
+[  Info  ] Verified: 469 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:3795.64: std::bad_alloc
+[  Info  ] Verified: 475 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '' at (5773, 1395): not a valid start for a token
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:9680.64: std::bad_alloc
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:4415.64: std::bad_alloc
+[  Info  ] Verified: 481 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '�' at (1068, 41): not a valid start for a token
+[  Info  ] Verified: 518 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:6005.64: std::bad_alloc
+[  Info  ] Verified: 519 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.parser.Parser$UnexpectedTokenException: Unexpected token at position: (2718, 329). Expected: [CParen]. Found: X
+[  Info  ] Verified: 520 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:4716.64: std::bad_alloc
+[  Info  ] Verified: 521 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: ']' at (2802, 3620): not a valid start for a token
+[  Info  ] Verified: 526 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:9848.64: std::bad_alloc
+[  Info  ] Verified: 527 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:9923.64: std::bad_alloc
+[  Info  ] Verified: 533 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:6467.64: std::bad_alloc
+[  Info  ] Verified: 539 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:4111.64: std::bad_alloc
+[  Info  ] Verified: 540 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:12127.64: std::bad_alloc
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.parser.Parser$UnexpectedTokenException: Unexpected token at position: (4098, 5482). Expected: [CParen]. Found: o
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '' at (3544, 235): not a valid start for a token
+[  Info  ] Verified: 546 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '' at (2190, 16437): not a valid start for a token
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:3778.64: std::bad_alloc
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:4303.64: std::bad_alloc
+[  Info  ] Verified: 560 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '�' at (5058, 472): not a valid start for a token
+[  Info  ] Verified: 563 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:6366.64: std::bad_alloc
+[  Info  ] Verified: 565 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1183.64: std::bad_alloc
+[  Info  ] Verified: 566 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:12186.64: std::bad_alloc
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:8592.64: std::bad_alloc
+[  Info  ] Verified: 567 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:6935.64: std::bad_alloc
+[  Info  ] Verified: 569 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:7315.64: std::bad_alloc
+[  Info  ] Verified: 571 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:8113.64: std::bad_alloc
+[  Info  ] Verified: 573 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.parser.Parser$UnexpectedTokenException: Unexpected token at position: (4768, 63). Expected: [CParen]. Found: P
+[  Info  ] Verified: 577 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:10687.64: std::bad_alloc
+[  Info  ] Verified: 584 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:6739.64: std::bad_alloc
+[  Info  ] Verified: 586 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:6587.64: std::bad_alloc
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '�' at (5431, 3665): not a valid start for a token
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: ' at (7717, 20): not a valid start for a token
+[  Info  ] Verified: 590 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:13391.64: std::bad_alloc
+[  Info  ] Verified: 592 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:3264.64: std::bad_alloc
+[  Info  ] Verified: 593 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:3324.64: std::bad_alloc
+[  Info  ] Verified: 618 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '' at (5892, 306): not a valid start for a token
+[  Info  ] Verified: 633 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:9118.64: std::bad_alloc
+[  Info  ] Verified: 730 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1424.64: std::bad_alloc
+[  Info  ] Verified: 731 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:10860.64: std::bad_alloc
+[  Info  ] Verified: 741 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:858.64: std::bad_alloc
+[  Info  ] Verified: 747 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1222.64: std::bad_alloc
+[  Info  ] Verified: 748 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '{' at (760, 16341): not a valid start for a token
+[  Info  ] Verified: 752 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '' at (589, 176): not a valid start for a token
+[  Info  ] Verified: 773 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1122.64: std::bad_alloc
+[  Info  ] Verified: 778 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1091.64: std::bad_alloc
+[  Info  ] Verified: 779 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:831.64: std::bad_alloc
+[  Info  ] Verified: 782 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '' at (588, 15): not a valid start for a token
+[  Info  ] Verified: 783 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:994.64: std::bad_alloc
+[  Info  ] Verified: 785 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1222.64: std::bad_alloc
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:827.64: std::bad_alloc
+[  Info  ] Verified: 791 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:791.64: std::bad_alloc
+[  Info  ] Verified: 798 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:963.64: std::bad_alloc
+[  Info  ] Verified: 804 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:942.64: std::bad_alloc
+[  Info  ] Verified: 821 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '' at (678, 2112): not a valid start for a token
+[  Info  ] Verified: 828 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1651.64: std::bad_alloc
+[  Info  ] Verified: 855 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1113.64: std::bad_alloc
+[  Info  ] Verified: 1240 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '' at (722, 2016): not a valid start for a token
+[  Info  ] Verified: 1243 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '�' at (893, 16150): not a valid start for a token
+[  Info  ] Verified: 1247 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '�' at (1305, 46): not a valid start for a token
+[  Info  ] Verified: 1248 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:3729.64: std::bad_alloc
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1849.64: std::bad_alloc
+[  Info  ] Verified: 1251 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1650.64: std::bad_alloc
+[  Info  ] Verified: 1253 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '�' at (733, 39125): not a valid start for a token
+[  Info  ] Verified: 1255 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '' at (1988, 2015): not a valid start for a token
+[  Info  ] Verified: 1257 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:2959.64: std::bad_alloc
+[  Info  ] Verified: 1260 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:2900.64: std::bad_alloc
+[  Info  ] Verified: 1269 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1429.64: std::bad_alloc
+[  Info  ] Verified: 1275 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1420.64: std::bad_alloc
+[  Info  ] Verified: 1282 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:3376.64: std::bad_alloc
+[  Info  ] Verified: 1284 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '' at (842, 2014): not a valid start for a token
+[  Info  ] Verified: 1286 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1239.64: std::bad_alloc
+[  Info  ] Verified: 1291 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:2690.64: std::bad_alloc
+[  Info  ] Verified: 1294 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:2034.64: std::bad_alloc
+[  Info  ] Verified: 1298 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:2690.64: std::bad_alloc
+[  Info  ] Verified: 1302 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:4143.64: std::bad_alloc
+[  Info  ] Verified: 1304 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1411.64: std::bad_alloc
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '' at (2539, 1504): not a valid start for a token
+[  Info  ] Verified: 1311 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '' at (995, 78): not a valid start for a token
+[  Info  ] Verified: 1313 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '' at (1286, 308): not a valid start for a token
+[  Info  ] Verified: 1319 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '�' at (996, 49): not a valid start for a token
+[  Info  ] Verified: 1321 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:2605.64: std::bad_alloc
+[  Info  ] Verified: 1326 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:2076.64: std::bad_alloc
+[  Info  ] Verified: 1333 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '�' at (1962, 45): not a valid start for a token
+[  Info  ] Verified: 1334 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:3033.64: std::bad_alloc
+[  Info  ] Verified: 1338 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:2520.64: std::bad_alloc
+[  Info  ] Verified: 1345 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:2616.64: std::bad_alloc
+[  Info  ] Verified: 1352 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1201.64: std::bad_alloc
+[  Info  ] Verified: 1353 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1448.64: std::bad_alloc
+[  Info  ] Verified: 1355 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '�' at (799, 24166): not a valid start for a token
+[  Info  ] Verified: 1359 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1469.64: std::bad_alloc
+[  Info  ] Verified: 1362 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '' at (1500, 15582): not a valid start for a token
+[  Info  ] Verified: 1364 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1522.64: std::bad_alloc
+[  Info  ] Verified: 1365 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:3266.64: std::bad_alloc
+[  Info  ] Verified: 1366 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.parser.Parser$UnexpectedTokenException: Unexpected token at position: (1106, 72). Expected: [CParen]. Found: r
+[  Info  ] Verified: 1636 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '�' at (708, 1301): not a valid start for a token
+[  Info  ] Verified: 1637 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '�' at (1558, 2352): not a valid start for a token
+[  Info  ] Verified: 1638 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1021.64: std::bad_alloc
+[  Info  ] Verified: 1746 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.parser.Parser$UnexpectedTokenException: Unexpected token at position: (5895, 3878). Expected: [CParen]. Found: a
+[  Info  ] Verified: 1826 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1719.64: std::bad_alloc
+[  Info  ] Verified: 1835 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1458.64: Symbol error$colon Expression of type Nothing$colon assert(false)
+[ Error  ] 
+[ Error  ]   ...lon Object $pipe @dropConjunct false }]!3374|)))
+[ Error  ]                                             ^
+[ Error  ] 
+[ Error  ] �H���50255 (= res!413735 (not call!100368)))))))0 (regex!3110 rule!33))))))(assert (=> b!1050241 (= e!634539 (not (= (tag!7628 lt!446102) (String!11926 "))))))
+[ Error  ] (assert (=> b!1050240 (= res!413723 (not (nullable!1305 (regex!3110 lt!446102))))))
+[ Error  ] (assert (=> d!300126 (= lt!446105 (member anOtherTypeRule!11 (content!2933 rules!540)))))
+[ Error  ] (assert (=> b!1050254 (= res!413732 (not (is-ElementMatch!2760 (regex!3110 rule!33))))))
+[ Error  ] �?�
+              (��ؗ����G`�G`��u` HU`�`0������7`��7`(assert (=> b!1048731 (= res!413109 (noDuplicateTag!2750 rules!540 Nil!11239))))
+[ Error  ] �?�
+              (�������G`8�7`j�`�HU`�0���� \4` �7`�?�
+                                                    (��@�����7`X�G`j�`iw`�0������7`��7`�?�
+                                                                                          (��ؖ��0�G`��7`�v` HU`�0���� �7`��7`�?�
+                                                                                                                               (��0�����7`��G`�v`v`�0������7`�7`�?�
+                                                                                                                                                                   (�������G`�G``�w``�U`�`0�����7``�7`�?�
+                                                                                                                                                                                                         (��p�����G`�7`�v`p�T`�0�����7`�7`�?�
+                                                                                                                                                                                                                                             (��ș����7`(�G`�v` �w`�0������7`@�7`�?�
+                                                                                                                                                                                                                                                                                   (������@�G`��7`�Xq`p�T`�`0����@�7`��7`�?�
+                                      (��P���`�7`��G`�Xq``�U`�0����`�7` �7`�?�
+                                                                              (��������G`��G` �v`��U`�0������7`��7`�?�
+                                                                                                                      (��������G`H�G`�Yw``�U`�0���� �7`@�7`�?�
+                                                                                                                                                              (��8���@�G`��G``^t``�U`�`0����`�7`��7`�?�
+                                                                                                                                                                                                       (�����ЇG`8�G`��v``�v`�0������7`��7`�?�
+                                                                                                                                                                                                                                             (��`���`�G`ȉG` �v``�v`�0����@�7`�7`�?�
+                                                                                                                                                                                                                                                                                   (��8�����G`x�7`���`��v`�0������7``�7`�?�
+                                     (�������7`X�G`���``�U`�0�����7`��7`�?�
+                                                                           (�������G`��G`��u`p�T`�0������7`��7` �H���d!300086 (not c!263680)) b!1050201))45671)))))256 lt!445671)))))�?�
+                                                                                                                                                                                        (��P�����G`��7`�]q``�U`�0������7`��7`�?�
+                                                                                                                                                                                                                                (��������7`@���]q`�|w`�0������7`@E4`(assert (=> b!1050203 (= e!634522 (= (head!3985 lt!445685) (c!263256 lt!445671)))))
+[ Error  ] ���
+              (
+�����XD`�bp``����D`@D`d�
+                        val!3658pAT`�AT`���
+                                           (
+                                            ���
+                                               ��h�������v``���@D`D```@AT`��� �t`@�t`@�t`���
+                                                                                            (
+��D`�D``�v``���D`�D`���                                                                      ��`
+                       (
+��@D`�D``jp`���@D`�D`������
+                        (
+                         �����D`HD`@�q`����D`0D`���
+                                                   (
+                                                    ��P���D`�D`@�v`����D`�D`���
+                                                                               (
+                                                                                �����0D`�D`��p`���0D`�D`���
+                                                                                                           (
+                                                                                                            ������D`8D`�vp`����D` D`���
+                                                                                                                                       (
+                                                                                                                                        ��@���D`�D`@�q`����D`pD`���
+                                                                                                                                                                   (
+                                                                                                                                                                    ����� D`�D`�op`��� D`�D`���
+                                                                                                                                                                                               (
+                                                                                                                                                                                                �����pD`(D`�v`���pD`D`���
+                                                                                                                                                                                                                         (
+                                                                                                                                                                                                                          ��0���D`xD`@�v`����D``D`���
+                                                                                                                                                                                                                                                     (
+                                                                                                                                                                                                                                                      �����D`�D`��v`���D`�D`���
+                                                                                                                                                                                                                                                                               (
+                                                                                                                                                                                                                                                                                �����`D`D`PHW`���`D`D`���
+                   (
+                    �� ���D`hD`��q`����D`PD`���
+                                               (
+                                                ��p��D`�D`@:p`���D`�D`���
+                                                                         (
+                                                                          �����PDD`��q`���PD`�D`���
+                                                                                                   (
+                                                                                                    �����D`XD` �v`����D`@D`���
+                                                                                                                              (
+                                                                                                                               ��`���D`@
+��T`(�T` ��`����PED`�ZD`d�                                                                                                              ���u`����D`�D`@;��
+                          reg!31240�T`p�T`d�
+                                            regOne!6288��T`��T`d�
+                                                                 regTwo!6288��T`��T`d�
+                                                                                      regOne!6289��T`�T`d�
+                                                                                                          regTwo!6289��T`�T`d�
+                                                                                                                              c!263256 �T``�T`d�
+                                                                                                                                                regex!3110��T`��T`d�
+                                                                                                                                                                    tag!7628ЂT`��T`d�
+                                                                                                                                                                                      isSeparator!5570��T`��T`(assert (=> b!1048706 (= e!633607 (= lt!445666 (String!11926 ")))))
+[ Error  ] 8D` D`ЁT`����B4`C4`C4`�C;����T`@D` ��``p����`DD`�YD`D;����T`�CD` ��`�h�����DD`�E``D;����T`(DD`�(q`p�����ED`�YD`�D;����T`xDD`�(q`�h�����ED`�E`E;����T`�DD`��T`�����`ID` \D`PE;��P�T`��T`��T`�����ID`�ZD`�E;��P�T`hED`�,q`p����@FD`�YD`�E;��P�T`�ED`�,q`�h�����FD`�E`@F;��P�TFD`��T`p�����FD`�YD`�F;��P�T`XFD`��T`�h����0GD`�E`�F;��P�T`�4`��q`p����pHD`�YD`0G;��P�T`�FD`��q`�h�����HD`�E`(assert (=> b!1050206 (= res!413712 (isEmpty!7589 (tail!1674 lt!445685)))))
+[ Error  ] `(assert (=> b!1050256 (= c!263696 (is-EmptyLang!2760 (regex!3110 rule!33)))))
+[ Error  ] (assert (=> b!1050267 (= e!634554 (nullable!1305 (regex!3110 rule!33)))))
+[ Error  ] G`pH;��P�T`HGD`��T`p����JD`�YD`�H;��P�T`�HD`��T`�h�����JD`�E`(assert (=> bm!100365 (= call!100368 (isEmpty!7589 lt!445678))))
+[ Error  ] PD`�(G``I;�� P�T`�HD`Ь�`������KD` \D`�I;��!��T�T`Ь�`����0LD`�ZD`J;��#��T`�ID`Ь�`p�����JD`�YD`(declare-fun |error$colon Expression of type Nothing$colon assert(false)
+[ Error  ] G`�J;��$��T`JD``tw`p����@KD`�YD`�J;��%��T`�JD``tw`�h�����KD`�E`@K;��&��T`��4`�w`p�����LD`�YD`�K;��'��T`XKD`�w`�h�����LD`�E`�K;��(��T`�KD`Ц�`������MD` \D`0L;��)0�T`x�T`Ц�`����ND`�ZD`�L;��*0�T`HLD`Ц�`p���� MD`�YD`�L;��+0�T`�LD`Ц�`�h����pMD`�E` M;��,0�T`�LD`�`w`p����`ND`�YD`pM;��-0�T`8MD`�`w`�h�����ND`�E`�M;��.0�T`�MD`��T`����� RD` \D`N;��/��T`��T`��T`����pRD`�ZD``N;��0��T`(ND` hw`p����OD`�YD`�N;��1��T`xND` hw`�h����POD`�E`O;��2��T`�ND`@�T`p�����OD`�YD`PO;��3��T`OD`@�T`�h�����OD`�E`�O;��4��T`x�4``bw`p����0QD`�YD`�O;��8��T`�OD``bw`�h�����QD`�E`<empty tree>[{ x$colon Object $pipe @dropConjunct false }]!3374| () Unit!61171)
+[ Error  ] <empty tree>[{ x$colon Object $pipe @dropConjunct false }]!3374 is not declared.
+[  Info  ] Verified: 1839 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '' at (30254, 79): not a valid start for a token
+[  Info  ] Verified: 1840 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:2461.64: std::bad_alloc
+[  Info  ] Verified: 1841 / 4045
+[Warning ]  - Result for 'body assertion: Inlined precondition of check' VC for lemmaPrintWithSepTokenWhenNeededThenMaxPrefReturnsHead @701:15:
+[Warning ] isEmpty[Rule[C]](rules) || !rulesValid[C](rules) || !noDuplicateTag[C](rules, Nil[String]()) || !rulesProduceEachTokenIndividually[C](rules, tokens) || !rulesProduceIndivualToken[C](rules, separatorToken) || !isSeparator[C](separatorToken) || !forall[Token[C]](tokens, (_$6: Token[C]) => !isSeparator[C](_$6)) || !sepAndNonSepRulesDisjointChars[C](rules, rules) || !tokens.isInstanceOf[Cons] || {
+[Warning ]   val bdg: List[C] = getCharacters[C](separatorToken)
+[Warning ]   val bdg: Unit = lemmaMaxPrefReturnTokenSoItsTagBelongsToARule[C](rules, bdg, separatorToken)
+[Warning ]   val bdg: Rule[C] = get[Rule[C]](getRuleFromTag[C](rules, getTag[C](separatorToken)))
+[Warning ]   val bdg: List[C] = getCharacters[C](tokens.h)
+[Warning ]   val bdg: Unit = lemmaMaxPrefReturnTokenSoItsTagBelongsToARule[C](rules, bdg, tokens.h)
+[Warning ]   val bdg: Option[Rule[C]] = getRuleFromTag[C](rules, getTag[C](tokens.h))
+[Warning ]   val bdg: List[C] = printWithSeparatorTokenWhenNeeded[C](rules, tokens.t, separatorToken)
+[Warning ]   val bdg: Option[(Token[C], List[C])] = maxPrefix[C](rules, ++[C](bdg, bdg))
+[Warning ]   val bdg: Boolean = bdg.isInstanceOf[Some]
+[Warning ]   bdg && bdg.v._1 == tokens.h || !bdg || bdg.v._1 == tokens.h || {
+[Warning ]     val bdg: Unit = lemmaTwoListsConcatAssociativity[C](bdg, bdg, bdg)
+[Warning ]     val bdg: List[C] = ++[C](bdg, bdg)
+[Warning ]     val bdg: C = head[C](bdg)
+[Warning ]     val bdg: Unit = if (!contains[C](usedCharacters[C](bdg.regex), bdg)) {
+[Warning ]       val bdg: Unit = lemmaRegexCannotMatchAStringContainingACharItDoesNotContain[C](bdg.regex, bdg, bdg)
+[Warning ]       assume((false): @ghost )
+[Warning ]       ()
+[Warning ]     } else {
+[Warning ]       ()
+[Warning ]     }
+[Warning ]     val bdg: Unit = lemmaNonSepRuleNotContainsCharContainedInASepRule[C](rules, rules, get[Rule[C]](bdg), bdg, bdg)
+[Warning ]     val bdg: Option[(Token[C], List[C])] = maxPrefix[C](rules, bdg)
+[Warning ]     assume((isDefined[(Token[C], List[C])](bdg)): @ghost )
+[Warning ]     ((get[(Token[C], List[C])](bdg)._1 == tokens.h)): @ghost 
+[Warning ]   }
+[Warning ] }
+[Warning ] VerifiedFunLexer.scala:701:15:  => TIMEOUT
+                         check(maxPrefix(rules, hd.getCharacters).get._1 == hd)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[  Info  ] Verified: 1842 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '' at (1349, 1750): not a valid start for a token
+[  Info  ] Verified: 1844 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:2516.64: std::bad_alloc
+[  Info  ] Verified: 1847 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1201.64: std::bad_alloc
+[  Info  ] Verified: 1853 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:3898.64: std::bad_alloc
+[  Info  ] Verified: 1855 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1449.64: std::bad_alloc
+[  Info  ] Verified: 1858 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1845.64: std::bad_alloc
+[  Info  ] Verified: 1859 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1787.64: std::bad_alloc
+[  Info  ] Verified: 1868 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:2390.64: std::bad_alloc
+[  Info  ] Verified: 1870 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:2356.64: std::bad_alloc
+[  Info  ] Verified: 1875 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1662.64: std::bad_alloc
+[  Info  ] Verified: 1880 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1827.64: std::bad_alloc
+[  Info  ] Verified: 1887 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1235.64: std::bad_alloc
+[  Info  ] Verified: 1892 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:2282.64: std::bad_alloc
+[  Info  ] Verified: 1894 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '�' at (1131, 9): not a valid start for a token
+[  Info  ] Verified: 1900 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1249.64: std::bad_alloc
+[  Info  ] Verified: 1902 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:2104.64: std::bad_alloc
+[  Info  ] Verified: 1904 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1869.64: std::bad_alloc
+[  Info  ] Verified: 1910 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.parser.Parser$UnexpectedTokenException: Unexpected token at position: (2028, 192). Expected: [CParen]. Found: k
+[  Info  ] Verified: 1914 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:2789.64: std::bad_alloc
+[  Info  ] Verified: 1915 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:3454.64: std::bad_alloc
+[  Info  ] Verified: 1918 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:4714.64: std::bad_alloc
+[  Info  ] Verified: 1920 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:3565.64: std::bad_alloc
+[  Info  ] Verified: 1924 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:4460.64: Symbol error$colon Expression of type Nothing$colon assert(false)
+[ Error  ] 
+[ Error  ]   ...lon Object $pipe @dropConjunct false }]!3790|)))
+[ Error  ]                                             ^
+[ Error  ] 
+[ Error  ] �,܋�d!322006 (not c!288512)) b!1153010))atch!3019 (regex!3369 rule!33))))))65) lt(assert (=> b!1151919 (= res!455683 (contains!6828 rules!540 (get!6171 lt!489412)))))
+[ Error  ] (assert (=> b!1152006 (= c!288170 (and (is-None!5127 lt!489436) (is-None!5127 lt!489434)))))
+[ Error  ] `(assert (=> bm!109695 (= call!109698 (maxPrefixOneRule!1926 (h!13691 rules!540) lt!488303))))
+[ Error  ] ހ^��DPa��DPa�(/�
+[ Error  ] ��n`�^��`�`�`h`P` �n`ހ^��`�`0�n`ހ^`�`@�n`ހ^�(assert (=> d!321750 (= lt!489532 (head!4373 (_1!4695 (lex!1408 rules!540 lt!488265))))))
+[ Error  ] (assert (=> d!321996 (= (getCharacters!2865 token!66) (characters!3291 token!66))))
+[ Error  ] (assert (=> b!1153014 (= res!456052 (not (is-ElementMatch!3019 (regex!3369 rule!33))))))
+[ Error  ] �,܋���E`�N`�m`@�E`�N`�m`��E`)))))ex!3369 rule!33))(assert (=> b!1149719 (= e!692623 (and tp!147513 (inv!4572 (tag!8279 (h!13691 rules!540)))))))
+[ Error  ] ހ^��@`_��@`_�(/�
+[ Error  ] ��o`�^���~`�~`�~`(assert (=> b!1149729 (= e!692640 (and tp!147511 (inv!4572 (tag!8280 token!66))))))
+[ Error  ] (assert (=> b!1149731 (= lt!488267 (get!6171 (getRuleFromTag!2601 rules!540 lt!488285)))))
+[ Error  ] (assert (=> b!1149734 (= e!692639 (and tp!147512 (inv!4572 (tag!8279 anOtherTypeRule!11))))))
+[ Error  ] (assert (=> b!1149751 (= lt!488288 (lemmaGetSuffixOnListWithItSelfIsEmpty!850 lt!488265))))
+[ Error  ] (assert (=> d!321672 (= lt!489433 (lemmaIsPrefixRefl!1156 lt!488303 lt!488303))))
+[ Error  ] M`(assert (=> d!321928 (= (contains!6828 rules!540 anOtherTypeRule!11) lt!489777)))
+[ Error  ] (assert (=> b!1152882 (= c!288464 (is-Union!3019 (regex!3369 anOtherTypeRule!11)))))
+[ Error  ] (assert (=> d!321948 (= (usedCharacters!2171 (regex!3369 anOtherTypeRule!11)) e!694502)))
+[ Error  ] (assert (=> b!1152926 (= e!694528 (+ 1 (getIndex!940 (t!18444 rules!540) rule!33)))))
+[ Error  ] (assert (=> d!321990 (= (isDefined!3399 lt!488298) (not (isEmpty!8361 lt!488298)))))
+[ Error  ] (assert (=> b!1152990 (= c!288505 (is-ElementMatch!3019 (regex!3369 rule!33)))))
+[ Error  ] (assert (=> b!1153002 (= res!456053 (not (isEmpty!8331 (tail!1810 lt!488265))))))
+[ Error  ] �`�o`��n`��n`@o`�n``�o`(assert (=> b!1149725 (= res!454827 (contains!6828 rules!540 rule!33))))
+[ Error  ] (assert (=> b!1149728 (= e!692627 (not (isPrefix!1830 lt!488265 lt!488265)))))
+[ Error  ] (assert (=> b!1151920 (= e!693926 (noDuplicateTag!3010 rules!540 Nil!12119))))
+[ Error  ] (assert (=> d!321672 (= (maxPrefix!2317 rules!540 lt!488303) lt!489435)))
+[ Error  ] (assert (=> d!321776 (>= (size!2846 lt!488303) (size!2846 lt!488300))))
+[ Error  ] lemmaGetRuleFromTagInListThenSameListWhenAddingARuleDiffTag!1221lemmaGetRuleFromTagInListThenSameListWhenAddingARuleDiffTag!1221lemmaGetRuleFromTagInListThenSameListWhenAddingARuleDiffTag!1221lemmaGetRuleFromTagInListThenSameListWhenAddingARuleDiffTag!1221(assert (=> d!321730 (isPrefix!1830 lt!488265 (++!2540 lt!488265 suffix!152))))
+[ Error  ] (declare-fun derivativeStep!1182 (Regex!3019 C!6390) Regex!3019)
+[ Error  ] (assert (=> bm!109802 (= call!109805 (isEmpty!8331 lt!488300))))
+[ Error  ] (assert (=> d!321982 (= (getIndex!940 rules!540 rule!33) lt!489805)))
+[ Error  ] (assert (=> b!1152945 (= e!694540 (rulesValid!2933 (t!18444 rules!540)))))
+[ Error  ] (assert (=> b!1152961 (= res!456037 (isDefined!3399 lt!489826))))
+[ Error  ] (assert (=> b!1153013 (= res!456050 (isEmpty!8331 (tail!1810 lt!488265)))))
+[ Error  ] 4�
+[ Error  ] 
+           v!85940�l`Ђl`4�
+[ Error  ] _1!4675 �l`Єl`4�
+[ Error  ] _2!4675p�l`Єl`(declare-fun maxPrefixOneRule!1926 (Rule!6020 List!12116) Option!5128)
+[ Error  ] �^�@<`@<`Ёl`ހ^���`��`��`(assert (=> b!1149731 (= lt!488303 (++!2540 lt!488265 suffix!152))))
+[ Error  ] �^�(assert (=> b!1149757 (= res!454845 (not (isEmpty!8331 suffix!152)))))
+[ Error  ] 0Bc,܋�C|`�|�`�D|`�D|`�J`�?(assert (=> b!1152701 (= c!288400 (is-EmptyLang!3019 lt!488268))))
+[ Error  ] `(assert (=> d!321734 (= (isPrefix!1830 lt!488300 lt!488303) lt!489476)))
+[ Error  ]  Cc,܋
+                �*����PO`pC|`pC|`�J`pCc,PC|`�w�`0B|`0B|`�J`(assert (=> d!321760 (= (getSuffix!1714 lt!488265 lt!488265) lt!489541)))
+[ Error  ] Dc,܋
+               C|`0n`@D|`�J`(assert (=> d!321992 (= (maxPrefix!2317 rules!540 lt!488265) lt!489826)))
+[ Error  ] �Dc,܋`B|`y�`E|`E|`�J`Ec,܋��D|`p�`0E|`�J`�Ʀ
+[ Error  ] (
+            �^���^���|`�|``�H``��^���|`Ђ|`�Ʀ
+[ Error  ] (
+            �^��^���^���|`��H``��^���|`��|`�Ʀ
+[ Error  ] (
+            �^� �^�Ђ|`��|``LH``��^�Ђ|`��|`�Ʀ
+[ Error  ] (
+            �^�@�^�@�|`�|`�H``��^�@�|`�|`�Ʀ
+[ Error  ] (
+            �^���^� �|�|` �K``��^� �|`��|`�Ʀ
+[ Error  ] (
+            �^�P�^�P�|`8�|`��H``��^�P�|` �|`�Ʀ
+[ Error  ] (
+            �^��^� �|`؈|`�K``��^� �|`��|`�Ʀ
+[ Error  ] (
+            �^���^��|`؃|` H``��^��|`��|`�Ʀ
+[ Error  ] (
+            �^�p�^���|`8�|`��H``��^���|` �|`�Ʀ
+[ Error  ] (
+            �^���^��|`��|` 
+[ Error  ] H``��^��|`��|`�Ʀ
+[ Error  ] (
+            �^���^���|`��|``�H``��^���|`��|`�Ʀ
+[ Error  ] (
+            �^���^���|`��|` mH``��^���|`��|`�Ʀ
+[ Error  ] (
+            �^�0�^�0�|`�|`��K``��^�0�|`�|`�c,܋Z�^��Z�^���o``�N`��|``�|`�Ʀ
+[ Error  ] (
+            �^��
+                �^�h�^��|` �H``��^���|`�|`�Ʀ
+[ Error  ] (
+�^�`�|`��^�`WH``��^�`�|`P�|`�Ʀ
+[ Error  ] (
+            �^��
+                �^�`�|`x�|``�N``��^�`�|``�|`�Ʀ
+[ Error  ] (
+            �^�P�^���|`��|`��H``��^���|`��|`�Ʀ
+[ Error  ] (
+            �^���^�P�|`@
+                        �^�`BH``��^�P�|``�|`(assert (=> b!1153015 (= e!694580 (nullable!1429 (regex!3369 rule!33)))))
+[ Error  ] |`<empty tree>[{ x$colon Object $pipe @dropConjunct false }]!3790 is not declared.
+[  Info  ] Verified: 1927 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:3108.64: std::bad_alloc
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:2346.64: std::bad_alloc
+[  Info  ] Verified: 1934 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:2703.64: std::bad_alloc
+[  Info  ] Verified: 1935 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1505.64: std::bad_alloc
+[  Info  ] Verified: 1938 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1856.64: std::bad_alloc
+[  Info  ] Verified: 1947 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '�' at (1192, 49209): not a valid start for a token
+[  Info  ] Verified: 1948 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:4154.64: std::bad_alloc
+[  Info  ] Verified: 1955 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:3106.64: std::bad_alloc
+[  Info  ] Verified: 1960 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:2874.64: std::bad_alloc
+[  Info  ] Verified: 1967 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:2080.64: std::bad_alloc
+[  Info  ] Verified: 1968 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '�' at (813, 16255): not a valid start for a token
+[  Info  ] Verified: 1970 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:3202.64: std::bad_alloc
+[  Info  ] Verified: 1971 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1146.64: std::bad_alloc
+[  Info  ] Verified: 1975 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1673.64: std::bad_alloc
+[  Info  ] Verified: 1979 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1473.64: std::bad_alloc
+[  Info  ] Verified: 1981 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:2983.64: std::bad_alloc
+[  Info  ] Verified: 1985 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '�' at (1357, 17252): not a valid start for a token
+[  Info  ] Verified: 1997 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:2426.64: std::bad_alloc
+[  Info  ] Verified: 2002 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '' at (2597, 211): not a valid start for a token
+[  Info  ] Verified: 2019 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1295.64: std::bad_alloc
+[  Info  ] Verified: 2043 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '�' at (477, 232): not a valid start for a token
+[  Info  ] Verified: 2895 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1542.64: std::bad_alloc
+[  Info  ] Verified: 2905 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1545.64: std::bad_alloc
+[  Info  ] Verified: 2907 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:517.64: std::bad_alloc
+[  Info  ] Verified: 2927 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1809.64: std::bad_alloc
+[  Info  ] Verified: 2928 / 4045
+[ Error  ] Internal solver error in cvc4: Parse Error: <stdin>:1033.64: std::bad_alloc
+[  Info  ] Verified: 2929 / 4045
+[ Error  ] Internal solver error in cvc4: Solver encountered exception: smtlib.lexer.Lexer$UnexpectedCharException: Encountered unexpected character: '�' at (1375, 54): not a valid start for a token
+[  Info  ] Verified: 3664 / 4045
