@@ -900,9 +900,6 @@ object VerifiedRegexMatcher {
         }
       }
       case Concat(rOne, rTwo) => {
-        //  if (nullable(rOne)) Union(Concat(derivativeStep(rOne, a), rTwo), derivativeStep(rTwo, a))
-        // else Union(Concat(derivativeStep(rOne, a), rTwo), EmptyLang())
-
         if (nullable(rOne)) {
           lemmaMatchRIsSameAsWholeDerivativeAndNil(Union(Concat(derivativeStep(rOne, c), rTwo), derivativeStep(rTwo, c)), tl)
           lemmaRegexUnionAcceptsThenOneOfTheTwoAccepts(Concat(derivativeStep(rOne, c), rTwo), derivativeStep(rTwo, c), tl)

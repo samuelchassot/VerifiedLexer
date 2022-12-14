@@ -384,8 +384,10 @@ object VerifiedFunLexer {
       require(tokens.isEmpty || tokens.head.isSeparator == r.isSeparator)
       require(ListUtils.isPrefix(otherP, input))
       require(r != otherR)
-      val _ = lemmaRuleInListAndRulesValidThenRuleIsValid(r, rules)
-      require(tokens.isEmpty || matchR(r.regex, tokens.head.getCharacters))
+      require({
+        lemmaRuleInListAndRulesValidThenRuleIsValid(r, rules)
+        tokens.isEmpty || matchR(r.regex, tokens.head.getCharacters)
+      })
 
       lemmaRuleInListAndRulesValidThenRuleIsValid(otherR, rules)
       if (ListUtils.getIndex(rules, r) > ListUtils.getIndex(rules, otherR)) {
@@ -445,8 +447,10 @@ object VerifiedFunLexer {
       require(rulesProduceIndivualToken(rules, separatorToken))
       require(separatorToken.isSeparator)
       require(tokens.forall(!_.isSeparator))
-      val _ = lemmaMaxPrefReturnTokenSoItsTagBelongsToARule(rules, separatorToken.getCharacters, separatorToken)
-      require(getRuleFromTag(rules, separatorToken.getTag).get.isSeparator)
+      require({
+        lemmaMaxPrefReturnTokenSoItsTagBelongsToARule(rules, separatorToken.getCharacters, separatorToken)
+        getRuleFromTag(rules, separatorToken.getTag).get.isSeparator
+      })
       require(sepAndNonSepRulesDisjointChars(rules, rules))
 
       tokens match {
@@ -505,8 +509,10 @@ object VerifiedFunLexer {
       require(rulesProduceIndivualToken(rules, separatorToken))
       require(separatorToken.isSeparator)
       require(tokens.forall(!_.isSeparator))
-      val _ = lemmaMaxPrefReturnTokenSoItsTagBelongsToARule(rules, separatorToken.getCharacters, separatorToken)
-      require(getRuleFromTag(rules, separatorToken.getTag).get.isSeparator)
+      require({
+        lemmaMaxPrefReturnTokenSoItsTagBelongsToARule(rules, separatorToken.getCharacters, separatorToken)
+        getRuleFromTag(rules, separatorToken.getTag).get.isSeparator
+      })
       require(sepAndNonSepRulesDisjointChars(rules, rules))
       decreases(tokens.size)
 
@@ -691,6 +697,8 @@ object VerifiedFunLexer {
               }
               lemmaNonSepRuleNotContainsCharContainedInASepRule(rules, rules, rule, separatorRule, separatorToken.getCharacters.head)
 
+              check(maxPrefix(rules, hd.getCharacters).isDefined)
+              check(maxPrefix(rules, hd.getCharacters).get._1 == hd)
               lemmaMaxPrefWithOtherTypeUsedCharAtStartOfSuffixReturnSame(rules, hd, rule, resSuffix, separatorRule)
             }
             case None() => {
@@ -718,8 +726,10 @@ object VerifiedFunLexer {
       require(maxPrefix(rules, token.getCharacters).get._2.isEmpty)
       require(token.getTag == rule.tag)
       require(token.isSeparator == rule.isSeparator)
-      val _ = lemmaRuleInListAndRulesValidThenRuleIsValid(rule, rules)
-      require(matchR(rule.regex, token.getCharacters))
+      require({
+        lemmaRuleInListAndRulesValidThenRuleIsValid(rule, rules)
+        matchR(rule.regex, token.getCharacters)
+      })
       require(!suffix.isEmpty)
       require(!usedCharacters(rule.regex).contains(suffix.head))
       require(usedCharacters(anOtherTypeRule.regex).contains(suffix.head))
@@ -826,8 +836,10 @@ object VerifiedFunLexer {
       require(token.getTag == rule.tag)
       require(token.isSeparator == rule.isSeparator)
       require(token.isSeparator)
-      val _ = lemmaRuleInListAndRulesValidThenRuleIsValid(rule, rules)
-      require(matchR(rule.regex, token.getCharacters))
+      require({
+        lemmaRuleInListAndRulesValidThenRuleIsValid(rule, rules)
+        matchR(rule.regex, token.getCharacters)
+      })
       require(!suffix.isEmpty)
       require(!usedCharacters(rule.regex).contains(suffix.head))
       require(usedCharacters(aNSeparatorRule.regex).contains(suffix.head))
@@ -919,8 +931,10 @@ object VerifiedFunLexer {
       require(token.getTag == rule.tag)
       require(token.isSeparator == rule.isSeparator)
       require(!token.isSeparator)
-      val _ = lemmaRuleInListAndRulesValidThenRuleIsValid(rule, rules)
-      require(matchR(rule.regex, token.getCharacters))
+      require({
+        lemmaRuleInListAndRulesValidThenRuleIsValid(rule, rules)
+        matchR(rule.regex, token.getCharacters)
+      })
       require(!suffix.isEmpty)
       require(!usedCharacters(rule.regex).contains(suffix.head))
       require(usedCharacters(aSeparatorRule.regex).contains(suffix.head))
@@ -1052,8 +1066,10 @@ object VerifiedFunLexer {
 
     def lemmaGetRuleFromTagInListThenSameListWhenAddingARuleDiffTag[C](rules: List[Rule[C]], newHd: Rule[C], tag: String): Unit = {
       require(rulesInvariant(Cons(newHd, rules)))
-      val _ = lemmaInvariantOnRulesThenOnTail(newHd, rules)
-      require(getRuleFromTag(rules, tag).isDefined)
+      require({
+        lemmaInvariantOnRulesThenOnTail(newHd, rules)
+        getRuleFromTag(rules, tag).isDefined
+      })
 
       lemmaInvariantOnRulesThenOnTail(newHd, rules)
       lemmaNoDuplicateAndTagInAccThenRuleCannotHaveSame(rules, getRuleFromTag(rules, tag).get, newHd.tag, List(newHd.tag))
@@ -1225,9 +1241,11 @@ object VerifiedFunLexer {
 
       require(validRegex(r.regex))
       require(matchR(r.regex, p))
-      val _ = ListUtils.lemmaIsPrefixRefl(input, input)
       require(ruleValid(r))
-      require(maxPrefixOneRule(r, input) == Some(Token(p, r.tag, r.isSeparator), ListUtils.getSuffix(input, p)))
+      require({
+        ListUtils.lemmaIsPrefixRefl(input, input)
+        maxPrefixOneRule(r, input) == Some(Token(p, r.tag, r.isSeparator), ListUtils.getSuffix(input, p))
+      })
 
       require(pBis.size > p.size)
 
@@ -1303,10 +1321,12 @@ object VerifiedFunLexer {
       require(!rules.isEmpty)
       require(rulesInvariant(rules))
       require(rules.contains(r))
-      val _ = lemmaRuleInListAndRulesValidThenRuleIsValid(r, rules)
       require(input == p ++ suffix)
       require(maxPrefix(rules, input) == Some(Token(p, r.tag, r.isSeparator), suffix))
-      require(matchR(r.regex, p))
+      require({
+        lemmaRuleInListAndRulesValidThenRuleIsValid(r, rules)
+        matchR(r.regex, p)
+      })
       decreases(rules.size)
 
       rules match {
@@ -1384,9 +1404,11 @@ object VerifiedFunLexer {
       require(rulesInvariant(rules))
       require(rules.contains(rBis))
       require(maxPrefix(rules, input) == Some(t, suffix))
-      val _ = ListUtils.lemmaIsPrefixRefl(input, input)
       require(ruleValid(rBis))
-      require(maxPrefixOneRule(rBis, input) == Some(tBis, suffixBis))
+      require({
+        ListUtils.lemmaIsPrefixRefl(input, input)
+        maxPrefixOneRule(rBis, input) == Some(tBis, suffixBis)
+      })
       require(tBis.getTag == rBis.tag)
       require(tBis.getCharacters == pBis)
       require(pBis ++ suffixBis == input)
@@ -1465,8 +1487,10 @@ object VerifiedFunLexer {
       require(validRegex(r.regex))
       require(matchR(r.regex, p))
       require(t.getCharacters == p)
-      val _ = ListUtils.lemmaIsPrefixRefl(input, input)
-      require(maxPrefixOneRule(r, input) == Some(t, suffix))
+      require({
+        ListUtils.lemmaIsPrefixRefl(input, input)
+        maxPrefixOneRule(r, input) == Some(t, suffix)
+      })
 
       ListUtils.lemmaIsPrefixRefl(input, input)
 
