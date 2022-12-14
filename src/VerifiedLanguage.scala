@@ -277,8 +277,8 @@ object VerifiedLanguageMatcher {
 
         lemmaCheckFromToStarAddingListBeforePreserves(l, s1, s2)
 
-        assert(l.checkFromToStar(0, 1, s1.size, s1 ++ s2)) // OK
-        assert(l.checkFromToStar(s1.size, s1.size + 1, (s1 ++ s2).size, s1 ++ s2)) // OK
+        assert(l.checkFromToStar(0, 1, s1.size, s1 ++ s2))
+        assert(l.checkFromToStar(s1.size, s1.size + 1, (s1 ++ s2).size, s1 ++ s2))
 
         val w = s1 ++ s2
         val from = BigInt(0)
@@ -296,8 +296,7 @@ object VerifiedLanguageMatcher {
           assert(k == 1)
           assert(w == s1 ++ s2)
           assert(l.checkFromToStar(0, 1, 1, w) && l.checkFromToStar(1, 1 + 1, to, w))
-          assert(l.checkFromToStar(0, 1, (s1 ++ s2).size, s1 ++ s2))
-          check(l.checkFromToStar(0, 1, (s1 ++ s2).size, s1 ++ s2)) // Done
+          check(l.checkFromToStar(0, 1, (s1 ++ s2).size, s1 ++ s2))
 
         }
       }
