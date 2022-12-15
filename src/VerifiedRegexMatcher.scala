@@ -620,7 +620,7 @@ object VerifiedRegexMatcher {
 
     if (matchR(r, s)) {
       lemmaMatchRIsSameAsWholeDerivativeAndNil(r, s)
-      lemmaDerivativeAfterDerivativeStepIsNullableThenFirstCharsContainsHead(r, c, s.tail)
+      lemmaDerivAfterDerivStepIsNullableThenFirstCharsContainsHead(r, c, s.tail)
       check(false)
     }
 
@@ -837,7 +837,7 @@ object VerifiedRegexMatcher {
 
   } ensuring (usedCharacters(r).contains(c))
 
-  def lemmaDerivativeAfterDerivativeStepIsNullableThenFirstCharsContainsHead[C](r: Regex[C], c: C, tl: List[C]): Unit = {
+  def lemmaDerivAfterDerivStepIsNullableThenFirstCharsContainsHead[C](r: Regex[C], c: C, tl: List[C]): Unit = {
     require(validRegex(r))
     require(nullable(derivative(derivativeStep(r, c), tl)))
 
@@ -870,9 +870,9 @@ object VerifiedRegexMatcher {
       }
       case Union(rOne, rTwo) => {
         if (nullable(derivative(derivativeStep(rOne, c), tl))) {
-          lemmaDerivativeAfterDerivativeStepIsNullableThenFirstCharsContainsHead(rOne, c, tl)
+          lemmaDerivAfterDerivStepIsNullableThenFirstCharsContainsHead(rOne, c, tl)
         } else if (nullable(derivative(derivativeStep(rTwo, c), tl))) {
-          lemmaDerivativeAfterDerivativeStepIsNullableThenFirstCharsContainsHead(rTwo, c, tl)
+          lemmaDerivAfterDerivStepIsNullableThenFirstCharsContainsHead(rTwo, c, tl)
         } else {
           lemmaMatchRIsSameAsWholeDerivativeAndNil(r, Cons(c, tl))
           lemmaMatchRIsSameAsWholeDerivativeAndNil(rOne, Cons(c, tl))
@@ -884,7 +884,7 @@ object VerifiedRegexMatcher {
       case Star(rInner) => {
         assert(derivativeStep(r, c) == Concat(derivativeStep(rInner, c), Star(rInner)))
         if (nullable(derivative(derivativeStep(rInner, c), tl))) {
-          lemmaDerivativeAfterDerivativeStepIsNullableThenFirstCharsContainsHead(rInner, c, tl)
+          lemmaDerivAfterDerivStepIsNullableThenFirstCharsContainsHead(rInner, c, tl)
         } else {
           lemmaMatchRIsSameAsWholeDerivativeAndNil(derivativeStep(r, c), tl)
           assert(matchR(derivativeStep(r, c), tl))
@@ -896,7 +896,7 @@ object VerifiedRegexMatcher {
           assert(matchR(rInner, Cons(c, s1)))
           assert(matchR(derivativeStep(rInner, c), s1))
           lemmaMatchRIsSameAsWholeDerivativeAndNil(derivativeStep(rInner, c), s1)
-          lemmaDerivativeAfterDerivativeStepIsNullableThenFirstCharsContainsHead(rInner, c, s1)
+          lemmaDerivAfterDerivStepIsNullableThenFirstCharsContainsHead(rInner, c, s1)
         }
       }
       case Concat(rOne, rTwo) => {
@@ -912,10 +912,10 @@ object VerifiedRegexMatcher {
             assert(matchR(rTwo, s2))
             assert(matchR(rOne, Cons(c, s1)))
             lemmaMatchRIsSameAsWholeDerivativeAndNil(derivativeStep(rOne, c), s1)
-            lemmaDerivativeAfterDerivativeStepIsNullableThenFirstCharsContainsHead(rOne, c, s1)
+            lemmaDerivAfterDerivStepIsNullableThenFirstCharsContainsHead(rOne, c, s1)
           } else {
             lemmaMatchRIsSameAsWholeDerivativeAndNil(derivativeStep(rTwo, c), tl)
-            lemmaDerivativeAfterDerivativeStepIsNullableThenFirstCharsContainsHead(rTwo, c, tl)
+            lemmaDerivAfterDerivStepIsNullableThenFirstCharsContainsHead(rTwo, c, tl)
           }
         } else {
           lemmaMatchRIsSameAsWholeDerivativeAndNil(Union(Concat(derivativeStep(rOne, c), rTwo), EmptyLang()), tl)
@@ -929,7 +929,7 @@ object VerifiedRegexMatcher {
           assert(matchR(rTwo, s2))
           assert(matchR(rOne, Cons(c, s1)))
           lemmaMatchRIsSameAsWholeDerivativeAndNil(derivativeStep(rOne, c), s1)
-          lemmaDerivativeAfterDerivativeStepIsNullableThenFirstCharsContainsHead(rOne, c, s1)
+          lemmaDerivAfterDerivStepIsNullableThenFirstCharsContainsHead(rOne, c, s1)
 
         }
       }
