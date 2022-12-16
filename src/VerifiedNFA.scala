@@ -221,13 +221,13 @@ object VerifiedNFAMatcher {
   import ListUtils._
 
   @inline
+  def matchNFA[C](nfa: NFA[C], input: List[C]): Boolean = findLongestMatch(nfa, input)._2.isEmpty
+
+  @inline
   def findLongestMatch[C](nfa: NFA[C], input: List[C]): (List[C], List[C]) = {
 
     findLongestMatchInner(nfa, nfa.startStates, Nil(), input)
   }
-
-  @inline
-  def isPrefix[C](nfa: NFA[C], p: List[C]): Boolean = findLongestMatch(prefixSetNFA(nfa), p)._2.isEmpty
 
   def findLongestMatchInner[C](nfa: NFA[C], startStates: List[State], pastChars: List[C], suffix: List[C]): (List[C], List[C]) = {
     decreases(suffix.size)
@@ -263,8 +263,16 @@ object VerifiedNFAMatcher {
 
   }
 
-  @extern
   def emptyClosure[C](startStates: List[State], nfa: NFA[C]): List[State] = {
+    require(ListOps.noDuplicate(startStates))
+    require(startStates.forall(s => transitionsStates(nfa.transitions).contains(s)))
+    decreases({
+      ListUtils.lemmaForallContainsAndNoDuplicateThenSmallerList(transitionsStates(nfa.transitions), startStates)
+      transitionsStates(nfa.transitions).size - startStates.size
+    })
+    ListUtils.lemmaForallContainsAndNoDuplicateThenSmallerList(transitionsStates(nfa.transitions), startStates)
+    assert(transitionsStates(nfa.transitions).size >= startStates.size)
+    assert(transitionsStates(nfa.transitions).size - startStates.size >= 0)
     val newStates = nfa.transitions.flatMap(t =>
       t match {
         case EpsilonTransition(from, to) if startStates.contains(from) => List(to)
@@ -274,7 +282,8 @@ object VerifiedNFAMatcher {
     if (newStates.forall(startStates.contains(_))) {
       ListUtils.removeDuplicates(startStates)
     } else {
-      emptyClosure(startStates ++ newStates, nfa)
+      val newStartStates = ListUtils.removeDuplicates(startStates ++ newStates)
+      emptyClosure(newStartStates, nfa)
     }
   }
 
@@ -284,7 +293,31 @@ object VerifiedNFAMatcher {
     case _                       => false
   }
 
-  // Main theorem
+  // Longest match theorems
+  def longestMatchIsAcceptedByMatchOrIsEmpty[C](nfa: NFA[C], input: List[C]): Unit = {
+    require(validNFA(nfa))
+
+  } ensuring (findLongestMatchInner(nfa, nfa.startStates, Nil(), input)._1.isEmpty || matchNFA(nfa, findLongestMatchInner(nfa, nfa.startStates, Nil(), input)._1))
+
+  // def longestMatchNoBiggerStringMatch[C](baseR: Regex[C], input: List[C], returnP: List[C], bigger: List[C]): Unit = {
+  //   require(validRegex(baseR))
+  //   require(ListUtils.isPrefix(returnP, input))
+  //   require(ListUtils.isPrefix(bigger, input))
+  //   require(bigger.size >= returnP.size)
+  //   require(findLongestMatchInner(baseR, Nil(), input)._1 == returnP)
+
+  //   if (bigger.size == returnP.size) {
+  //     ListUtils.lemmaIsPrefixSameLengthThenSameList(bigger, returnP, input)
+  //   } else {
+  //     if (matchR(baseR, bigger)) {
+  //       lemmaKnownAcceptedStringThenFromSmallPAtLeastThat(baseR, baseR, input, Nil(), bigger)
+  //       check(false)
+  //     }
+  //   }
+
+  // } ensuring (bigger == returnP || !matchR(baseR, bigger))
+
+  // Regex equivalence theorem
   @extern
   def equivalenceTheorem[C](r: Regex[C], s: List[C]): Unit = {
     require(validRegex(r))

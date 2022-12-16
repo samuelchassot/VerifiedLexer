@@ -409,4 +409,9 @@ object ListUtils {
     require(l2 == l2Bis)
 
   } ensuring (l1Bis.forall(b => l2Bis.contains(b)))
+
+  def lemmaForallContainsAndNoDuplicateThenSmallerList[B](l: List[B], lIn: List[B]): Unit = {
+    require(lIn.forall(e => l.contains(e)))
+    require(ListOps.noDuplicate(lIn))
+  } ensuring (lIn.size <= l.size)
 }
