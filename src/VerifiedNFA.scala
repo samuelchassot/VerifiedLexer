@@ -299,23 +299,23 @@ object VerifiedNFAMatcher {
 
   } ensuring (findLongestMatchInner(nfa, nfa.startStates, Nil(), input)._1.isEmpty || matchNFA(nfa, findLongestMatchInner(nfa, nfa.startStates, Nil(), input)._1))
 
-  // def longestMatchNoBiggerStringMatch[C](baseR: Regex[C], input: List[C], returnP: List[C], bigger: List[C]): Unit = {
-  //   require(validRegex(baseR))
-  //   require(ListUtils.isPrefix(returnP, input))
-  //   require(ListUtils.isPrefix(bigger, input))
-  //   require(bigger.size >= returnP.size)
-  //   require(findLongestMatchInner(baseR, Nil(), input)._1 == returnP)
+  def longestMatchNoBiggerStringMatch[C](baseNfa: NFA[C], input: List[C], returnP: List[C], bigger: List[C]): Unit = {
+    require(validNFA(baseNfa))
+    require(ListUtils.isPrefix(returnP, input))
+    require(ListUtils.isPrefix(bigger, input))
+    require(bigger.size >= returnP.size)
+    require(findLongestMatchInner(baseNfa, baseNfa.startStates, Nil(), input)._1 == returnP)
 
-  //   if (bigger.size == returnP.size) {
-  //     ListUtils.lemmaIsPrefixSameLengthThenSameList(bigger, returnP, input)
-  //   } else {
-  //     if (matchR(baseR, bigger)) {
-  //       lemmaKnownAcceptedStringThenFromSmallPAtLeastThat(baseR, baseR, input, Nil(), bigger)
-  //       check(false)
-  //     }
-  //   }
+    if (bigger.size == returnP.size) {
+      ListUtils.lemmaIsPrefixSameLengthThenSameList(bigger, returnP, input)
+    } else {
+      // if (matchR(baseR, bigger)) {
+      //   lemmaKnownAcceptedStringThenFromSmallPAtLeastThat(baseR, baseR, input, Nil(), bigger)
+      //   check(false)
+      // }
+    }
 
-  // } ensuring (bigger == returnP || !matchR(baseR, bigger))
+  } ensuring (bigger == returnP || !matchNFA(baseNfa, bigger))
 
   // Regex equivalence theorem
   @extern

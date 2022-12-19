@@ -413,5 +413,38 @@ object ListUtils {
   def lemmaForallContainsAndNoDuplicateThenSmallerList[B](l: List[B], lIn: List[B]): Unit = {
     require(lIn.forall(e => l.contains(e)))
     require(ListOps.noDuplicate(lIn))
+    lIn match {
+      case Cons(hd, tl) => {
+
+        ListSpecs.forallContainsSubset(lIn, l)
+        assert(lIn.content.subsetOf(l.content))
+        assert(!tl.contains(hd))
+        val newList = l - hd
+        assert(newList.content == l.content - hd)
+        ListSpecs.subsetContains(tl, newList)
+        lemmaForallContainsAndNoDuplicateThenSmallerList(newList, tl)
+        assert(tl.size <= newList.size)
+        assert(tl.size + 1 == lIn.size)
+        assert(l.contains(hd))
+        assert(newList.content == l.content -- Set(hd))
+        lemmaRemoveElmtContainedSizeSmaller(l, hd)
+        assert(l.size > newList.size)
+      }
+      case Nil() => ()
+    }
   } ensuring (lIn.size <= l.size)
+
+  def lemmaRemoveElmtContainedSizeSmaller[B](l: List[B], e: B): Unit = {
+    require(l.contains(e))
+    l match {
+      case Cons(hd, tl) if hd == e => {
+        assert(l - e == tl - e)
+        if (tl.contains(e)) {
+          lemmaRemoveElmtContainedSizeSmaller(tl, e)
+        }
+      }
+      case Cons(hd, tl) => lemmaRemoveElmtContainedSizeSmaller(tl, e)
+      case Nil()        => check(false)
+    }
+  } ensuring ((l - e).size < l.size)
 }
