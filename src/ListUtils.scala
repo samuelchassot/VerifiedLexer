@@ -313,12 +313,13 @@ object ListUtils {
   } ensuring (res => ListOps.noDuplicate(res) && (baseList ++ newList).content == res.content)
 
   def removeDuplicates[B](list: List[B], acc: List[B] = Nil[B]()): List[B] = {
+    require(ListOps.noDuplicate(acc))
     list match {
       case Cons(hd, tl) if acc.contains(hd) => removeDuplicates(tl, acc)
-      case Cons(hd, tl)                     => Cons(hd, removeDuplicates(tl, Cons(hd, acc)))
-      case Nil()                            => Nil[B]()
+      case Cons(hd, tl)                     => removeDuplicates(tl, Cons(hd, acc))
+      case Nil()                            => acc
     }
-  }
+  } ensuring (res => ListOps.noDuplicate(res) && res.content == (list ++ acc).content)
 
   def lemmaSubseqRefl[B](l: List[B]): Unit = {
 
