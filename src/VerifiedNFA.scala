@@ -229,6 +229,7 @@ object VerifiedNFAMatcher {
   @inline
   def findLongestMatch[C](nfa: NFA[C], input: List[C]): (List[C], List[C]) = {
     require(validNFA(nfa))
+    lemmaNfaStartStatesForallContainsStatesOrStartStates(nfa, nfa.startStates)
     findLongestMatchInner(nfa, nfa.startStates, Nil(), input)
   }
 
@@ -236,6 +237,11 @@ object VerifiedNFAMatcher {
     require(validNFA(nfa))
     require(ListOps.noDuplicate(startStates))
     require(startStates.forall(s => transitionsStates(nfa.transitions).contains(s) || nfa.startStates.contains(s)))
+    require({
+      ListUtils.lemmaSubseqRefl(nfa.startStates)
+      lemmaNfaStartStatesForallContainsStatesOrStartStates(nfa, nfa.startStates)
+      startStates == moveMultipleSteps(nfa, nfa.startStates, pastChars)
+    })
     decreases(suffix.size)
     if (suffix.isEmpty) {
       if (!nfa.finalStates.map(s => startStates.contains(s)).filter(_ == true).isEmpty) {
@@ -257,6 +263,7 @@ object VerifiedNFAMatcher {
 
       val statesAfterOneStep = moveOneStep(nfa, startStates, newChar)
       if (!nfa.finalStates.map(s => statesAfterOneStep.contains(s)).filter(_ == true).isEmpty) {
+        lemmaMoveOneStepAfterMultipleIsSameAsMultipleWithNewChar(nfa, nfa.startStates, pastChars, newChar)
         val recursive = findLongestMatchInner(nfa, statesAfterOneStep, currentPrefix, suffix.tail)
         if (recursive._1.size > currentPrefix.size) {
           recursive
@@ -268,6 +275,7 @@ object VerifiedNFAMatcher {
         }
       } else {
         ListUtils.lemmaConcatTwoListThenFirstIsPrefix(currentPrefix, suffix.tail)
+        lemmaMoveOneStepAfterMultipleIsSameAsMultipleWithNewChar(nfa, nfa.startStates, pastChars, newChar)
         findLongestMatchInner(nfa, statesAfterOneStep, currentPrefix, suffix.tail)
       }
     }
@@ -295,6 +303,16 @@ object VerifiedNFAMatcher {
       case Nil()        => startStates
     }
   } ensuring (res => ListOps.noDuplicate(res) && res.forall(s => transitionsStates(nfa.transitions).contains(s) || nfa.startStates.contains(s)))
+
+  def lemmaMoveOneStepAfterMultipleIsSameAsMultipleWithNewChar[C](nfa: NFA[C], startStates: List[State], cs: List[C], newC: C): Unit = {
+    require(validNFA(nfa))
+    require(ListOps.noDuplicate(startStates))
+    require(startStates.forall(s => transitionsStates(nfa.transitions).contains(s) || nfa.startStates.contains(s)))
+    cs match {
+      case Cons(hd, tl) => lemmaMoveOneStepAfterMultipleIsSameAsMultipleWithNewChar(nfa, moveOneStep(nfa, startStates, hd), tl, newC)
+      case Nil()        => ()
+    }
+  } ensuring (moveMultipleSteps(nfa, startStates, cs ++ List(newC)) == moveOneStep(nfa, moveMultipleSteps(nfa, startStates, cs), newC))
 
   @inlineOnce
   @opaque
