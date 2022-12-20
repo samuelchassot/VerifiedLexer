@@ -234,9 +234,9 @@ object VerifiedNFAMatcher {
 
   def findLongestMatchInner[C](nfa: NFA[C], startStates: List[State], pastChars: List[C], suffix: List[C]): (List[C], List[C]) = {
     require(validNFA(nfa))
+    require(ListOps.noDuplicate(startStates))
     require(startStates.forall(s => transitionsStates(nfa.transitions).contains(s) || nfa.startStates.contains(s)))
     decreases(suffix.size)
-    val startStatesWithEmpty = emptyClosure(startStates, nfa)
     if (suffix.isEmpty) {
       if (!nfa.finalStates.map(s => startStates.contains(s)).filter(_ == true).isEmpty) {
         ListUtils.lemmaConcatTwoListThenFirstIsPrefix(pastChars, suffix)
@@ -253,11 +253,11 @@ object VerifiedNFAMatcher {
       ListUtils.lemmaConcatTwoListThenFirstIsPrefix(pastChars, suffix)
       ListUtils.lemmaAddHeadSuffixToPrefixStillPrefix(pastChars, pastChars ++ suffix)
 
-      val statesAfterChar = getStatesAfterChars(startStatesWithEmpty, nfa, nfa.transitions, newChar)
-      val statesAfterEmpty = emptyClosure(statesAfterChar, nfa)
       ListUtils.lemmaTwoListsConcatAssociativity(pastChars, List(suffix.head), suffix.tail)
-      if (!nfa.finalStates.map(s => statesAfterEmpty.contains(s)).filter(_ == true).isEmpty) {
-        val recursive = findLongestMatchInner(nfa, statesAfterEmpty, currentPrefix, suffix.tail)
+
+      val statesAfterOneStep = moveOneStep(nfa, startStates, newChar)
+      if (!nfa.finalStates.map(s => statesAfterOneStep.contains(s)).filter(_ == true).isEmpty) {
+        val recursive = findLongestMatchInner(nfa, statesAfterOneStep, currentPrefix, suffix.tail)
         if (recursive._1.size > currentPrefix.size) {
           recursive
         } else {
@@ -268,11 +268,33 @@ object VerifiedNFAMatcher {
         }
       } else {
         ListUtils.lemmaConcatTwoListThenFirstIsPrefix(currentPrefix, suffix.tail)
-        findLongestMatchInner(nfa, statesAfterEmpty, currentPrefix, suffix.tail)
+        findLongestMatchInner(nfa, statesAfterOneStep, currentPrefix, suffix.tail)
       }
     }
 
   } ensuring (res => res._1.isEmpty || res._1.size >= pastChars.size && ListUtils.isPrefix(res._1, pastChars ++ suffix))
+
+  def moveOneStep[C](nfa: NFA[C], startStates: List[State], c: C): List[State] = {
+    require(validNFA(nfa))
+    require(ListOps.noDuplicate(startStates))
+    require(startStates.forall(s => transitionsStates(nfa.transitions).contains(s) || nfa.startStates.contains(s)))
+
+    val startStatesWithEmpty = emptyClosure(startStates, nfa)
+    ListUtils.lemmaSubseqRefl(nfa.transitions)
+    val statesAfterChar = getStatesAfterChars(startStatesWithEmpty, nfa, nfa.transitions, c)
+    val statesAfterEmpty = emptyClosure(statesAfterChar, nfa)
+    statesAfterEmpty
+  } ensuring (res => ListOps.noDuplicate(res) && res.forall(s => transitionsStates(nfa.transitions).contains(s) || nfa.startStates.contains(s)))
+
+  def moveMultipleSteps[C](nfa: NFA[C], startStates: List[State], cs: List[C]): List[State] = {
+    require(validNFA(nfa))
+    require(ListOps.noDuplicate(startStates))
+    require(startStates.forall(s => transitionsStates(nfa.transitions).contains(s) || nfa.startStates.contains(s)))
+    cs match {
+      case Cons(hd, tl) => moveMultipleSteps(nfa, moveOneStep(nfa, startStates, hd), tl)
+      case Nil()        => startStates
+    }
+  } ensuring (res => ListOps.noDuplicate(res) && res.forall(s => transitionsStates(nfa.transitions).contains(s) || nfa.startStates.contains(s)))
 
   @inlineOnce
   @opaque
@@ -288,7 +310,7 @@ object VerifiedNFAMatcher {
             ListSpecs.subseqContains(transitionsListRec, nfa.transitions, hd)
             lemmaTransitionInListThenToStatesInTransitionsStates(nfa.transitions, hd)
             assert(getStatesAfterChars(startStates, nfa, tl, c).forall(s => transitionsStates(nfa.transitions).contains(s) || nfa.startStates.contains(s)))
-            Cons(to, getStatesAfterChars(startStates, nfa, tl, c))
+            ListUtils.concatWithoutDuplicates(getStatesAfterChars(startStates, nfa, tl, c), List(to))
           }
           case _ => getStatesAfterChars(startStates, nfa, tl, c)
         }
@@ -296,7 +318,7 @@ object VerifiedNFAMatcher {
       case Nil() => Nil[State]()
     }
 
-  } ensuring (res => res.forall(s => transitionsStates(nfa.transitions).contains(s) || nfa.startStates.contains(s)))
+  } ensuring (res => ListOps.noDuplicate(res) && res.forall(s => transitionsStates(nfa.transitions).contains(s) || nfa.startStates.contains(s)))
 
   def lemmaTransitionInListThenToStatesInTransitionsStates[C](l: List[Transition[C]], t: Transition[C]): Unit = {
     require(l.contains(t))
