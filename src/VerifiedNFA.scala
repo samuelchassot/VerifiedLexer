@@ -415,9 +415,7 @@ object VerifiedNFAMatcher {
                 check(matchNFA(nfa, matchedP))
               } else {
                 assert(findLongestMatchInner(nfa, statesAfterEmpty, currentPrefix, Nil())._2.isEmpty)
-                assert(
-                  findLongestMatchInner(nfa, statesAfterEmpty, currentPrefix, inputSuffix.tail) == findLongestMatchInner(nfa, nfa.startStates, Nil(), seenChars ++ inputSuffix)
-                )
+                assert(findLongestMatchInner(nfa, startStates, seenChars, inputSuffix) == findLongestMatchInner(nfa, nfa.startStates, Nil(), seenChars ++ inputSuffix))
                 check(matchNFA(nfa, matchedP))
               }
 
