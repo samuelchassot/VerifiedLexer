@@ -229,6 +229,7 @@ object VerifiedNFAMatcher {
   @inline
   def findLongestMatch[C](nfa: NFA[C], input: List[C]): (List[C], List[C]) = {
     require(validNFA(nfa))
+    ListUtils.lemmaSubseqRefl(nfa.startStates)
     lemmaNfaStartStatesForallContainsStatesOrStartStates(nfa, nfa.startStates)
     findLongestMatchInner(nfa, nfa.startStates, Nil(), input)
   }
