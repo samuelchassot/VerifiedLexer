@@ -350,7 +350,6 @@ object VerifiedNFAMatcher {
 
   } ensuring (findLongestMatchInner(nfa, nfa.startStates, Nil(), input)._1.isEmpty || matchNFA(nfa, findLongestMatchInner(nfa, nfa.startStates, Nil(), input)._1))
 
-  @inlineOnce
   def longestMatchIsAcceptedByMatchOrIsEmptyInner[C](nfa: NFA[C], inputSuffix: List[C], matchedP: List[C], seenChars: List[C], startStates: List[State]): Unit = {
     require(validNFA(nfa))
     require(ListOps.noDuplicate(startStates))
@@ -381,32 +380,58 @@ object VerifiedNFAMatcher {
           if (seenChars.size == matchedP.size) {
             ListUtils.lemmaIsPrefixSameLengthThenSameList(matchedP, seenChars, seenChars ++ inputSuffix)
           }
+
+          val startStatesWithEmpty = emptyClosure(startStates, nfa)
+
           assert(seenChars.size < matchedP.size)
 
-          // val newChar = inputSuffix.head
+          val newChar = inputSuffix.head
 
-          // val currentPrefix = seenChars ++ List(newChar)
+          val currentPrefix = seenChars ++ List(newChar)
 
-          // ListUtils.lemmaConcatTwoListThenFirstIsPrefix(seenChars, inputSuffix)
-          // ListUtils.lemmaAddHeadSuffixToPrefixStillPrefix(seenChars, pastChars ++ inputSuffix)
+          ListUtils.lemmaConcatTwoListThenFirstIsPrefix(seenChars, inputSuffix)
+          ListUtils.lemmaAddHeadSuffixToPrefixStillPrefix(seenChars, seenChars ++ inputSuffix)
+          ListUtils.lemmaSubseqRefl(nfa.transitions)
 
-          // val statesAfterChar = getStatesAfterChars(startStatesWithEmpty, nfa, nfa.transitions, newChar)
-          // val statesAfterEmpty = emptyClosure(statesAfterChar, nfa)
-          // ListUtils.lemmaTwoListsConcatAssociativity(pastChars, List(inputSuffix.head), inputSuffix.tail)
-          // if (!nfa.finalStates.map(s => statesAfterEmpty.contains(s)).filter(_ == true).isEmpty) {
-          //   val recursive = findLongestMatchInner(nfa, statesAfterEmpty, currentPrefix, inputSuffix.tail)
-          //   if (recursive._1.size > currentPrefix.size) {
-          //     recursive
-          //   } else {
-          //     ListUtils.lemmaConcatTwoListThenFirstIsPrefix(currentPrefix, inputSuffix.tail)
-          //     assert(ListUtils.isPrefix(currentPrefix, currentPrefix ++ inputSuffix.tail))
-          //     assert(ListUtils.isPrefix(currentPrefix, pastChars ++ inputSuffix))
-          //     (currentPrefix, inputSuffix.tail)
-          //   }
-          // } else {
-          //   ListUtils.lemmaConcatTwoListThenFirstIsPrefix(currentPrefix, inputSuffix.tail)
-          //   findLongestMatchInner(nfa, statesAfterEmpty, currentPrefix, inputSuffix.tail)
-          // }
+          val statesAfterChar = getStatesAfterChars(startStatesWithEmpty, nfa, nfa.transitions, newChar)
+          val statesAfterEmpty = emptyClosure(statesAfterChar, nfa)
+          ListUtils.lemmaTwoListsConcatAssociativity(seenChars, List(inputSuffix.head), inputSuffix.tail)
+          if (!nfa.finalStates.map(s => statesAfterEmpty.contains(s)).filter(_ == true).isEmpty) {
+            val recursive = findLongestMatchInner(nfa, statesAfterEmpty, currentPrefix, inputSuffix.tail)
+            if (recursive._1.size > currentPrefix.size) {
+              assert(findLongestMatchInner(nfa, startStates, seenChars, inputSuffix) == recursive)
+              assert(findLongestMatchInner(nfa, startStates, seenChars, inputSuffix) == findLongestMatchInner(nfa, statesAfterEmpty, currentPrefix, inputSuffix.tail))
+              assert(findLongestMatchInner(nfa, startStates, seenChars, inputSuffix) == recursive)
+              longestMatchIsAcceptedByMatchOrIsEmptyInner(nfa, inputSuffix.tail, matchedP, currentPrefix, statesAfterEmpty)
+              // recursive
+              ()
+            } else {
+              ListUtils.lemmaConcatTwoListThenFirstIsPrefix(currentPrefix, inputSuffix.tail)
+              assert(ListUtils.isPrefix(currentPrefix, currentPrefix ++ inputSuffix.tail))
+              assert(ListUtils.isPrefix(currentPrefix, seenChars ++ inputSuffix))
+              assert(currentPrefix == matchedP)
+              assert(!matchedP.isEmpty)
+              if (inputSuffix.tail.isEmpty) {
+                check(matchNFA(nfa, matchedP))
+              } else {
+                assert(findLongestMatchInner(nfa, statesAfterEmpty, currentPrefix, Nil())._2.isEmpty)
+                assert(
+                  findLongestMatchInner(nfa, statesAfterEmpty, currentPrefix, inputSuffix.tail) == findLongestMatchInner(nfa, nfa.startStates, Nil(), seenChars ++ inputSuffix)
+                )
+                check(matchNFA(nfa, matchedP))
+              }
+
+              // (currentPrefix, inputSuffix.tail)
+              ()
+            }
+          } else {
+            ListUtils.lemmaConcatTwoListThenFirstIsPrefix(currentPrefix, inputSuffix.tail)
+            // findLongestMatchInner(nfa, statesAfterEmpty, currentPrefix, inputSuffix.tail)
+            // findLongestMatchInner(nfa, statesAfterEmpty, newSeenChars, suffix.tail)
+            check(findLongestMatchInner(nfa, startStates, seenChars, inputSuffix) == findLongestMatchInner(nfa, statesAfterEmpty, currentPrefix, inputSuffix.tail))
+            longestMatchIsAcceptedByMatchOrIsEmptyInner(nfa, inputSuffix.tail, matchedP, currentPrefix, statesAfterEmpty)
+
+          }
           // val newSeenChars = seenChars ++ List(inputSuffix.head)
           // val newInputSuffix = inputSuffix.tail
           // val startStatesWithEmpty = emptyClosure(startStates, nfa)
