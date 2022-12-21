@@ -299,16 +299,20 @@ object VerifiedNFAMatcher {
     require(validNFA(nfa))
     require(ListOps.noDuplicate(startStates))
     require(startStates.forall(s => transitionsStates(nfa.transitions).contains(s) || nfa.startStates.contains(s)))
+    decreases(cs.size)
     cs match {
       case Cons(hd, tl) => moveMultipleSteps(nfa, moveOneStep(nfa, startStates, hd), tl)
       case Nil()        => startStates
     }
   } ensuring (res => ListOps.noDuplicate(res) && res.forall(s => transitionsStates(nfa.transitions).contains(s) || nfa.startStates.contains(s)))
 
+  @opaque
+  @inlineOnce
   def lemmaMoveOneStepAfterMultipleIsSameAsMultipleWithNewChar[C](nfa: NFA[C], startStates: List[State], cs: List[C], newC: C): Unit = {
     require(validNFA(nfa))
     require(ListOps.noDuplicate(startStates))
     require(startStates.forall(s => transitionsStates(nfa.transitions).contains(s) || nfa.startStates.contains(s)))
+    decreases(cs.size)
     cs match {
       case Cons(hd, tl) => lemmaMoveOneStepAfterMultipleIsSameAsMultipleWithNewChar(nfa, moveOneStep(nfa, startStates, hd), tl, newC)
       case Nil()        => ()
