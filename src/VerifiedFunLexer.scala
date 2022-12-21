@@ -398,7 +398,7 @@ object VerifiedFunLexer {
 
     def theoremInvertabilityFromTokensSepTokenWhenNeeded[C](rules: List[Rule[C]], tokens: List[Token[C]], separatorToken: Token[C]): Unit = {
       require(!rules.isEmpty)
-      require(rulesInvariant(rules))
+      // require(rulesInvariant(rules))
       require(rulesProduceEachTokenIndividually(rules, tokens))
       require(rulesProduceIndivualToken(rules, separatorToken))
       require(separatorToken.isSeparator)
