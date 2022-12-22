@@ -65,6 +65,23 @@ object MainTest {
     println("dfaWhile match s1: " + matchDFA(dfaWhile, s1).toString)
     println("dfaWhile longestmatch with s1: " + VerifiedDFAMatcher.findLongestMatch(dfaWhile, s1).toString)
     println("dfaWhile longestmatch with s2: " + VerifiedDFAMatcher.findLongestMatch(dfaWhile, s2).toString)
+    println("dfaWhile longestmatch with s3: " + VerifiedDFAMatcher.findLongestMatch(dfaWhile, s3).toString)
+
+    val startStateSpace = VerifiedDFA.State(0)
+    val finalStateSpace = VerifiedDFA.State(5)
+    val errStateSpace = VerifiedDFA.State(6)
+    val transitionsSpace = List(
+      Transition(startState, ' ', finalStateSpace),
+      Transition(finalStateSpace, ' ', finalStateSpace)
+    )
+    val dfaAllSpaces: DFA[Char] = DFA(startState, List(finalState), errStateSpace, transitionsSpace)
+    val s4 = List(' ', ' ', ' ')
+    val s5 = List(' ', ' ', ' ', ' ', ' ', ' ')
+    val s6 = List(' ', ' ', ' ', 'w', 'h', 'i', 'l')
+    println("dfaAllSpaces match s4: " + matchDFA(dfaAllSpaces, s4).toString)
+    println("dfaAllSpaces longestmatch with s4: " + VerifiedDFAMatcher.findLongestMatch(dfaAllSpaces, s4).toString)
+    println("dfaAllSpaces longestmatch with s5: " + VerifiedDFAMatcher.findLongestMatch(dfaAllSpaces, s5).toString)
+    println("dfaAllSpaces longestmatch with s6: " + VerifiedDFAMatcher.findLongestMatch(dfaAllSpaces, s6).toString)
   }
 
 }
