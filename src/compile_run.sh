@@ -1,2 +1,2 @@
-scalac -d compiled $(find /Users/samuel/EPFL/stainless/frontends/library/stainless/ -name "*.scala") VerifiedFunLexer.scala VerifiedLanguage.scala VerifiedRegexMatcher.scala VerifiedNFA.scala ListUtils.scala --explain
+scalac -d compiled $(find /Users/samuel/EPFL/stainless/frontends/library/stainless/ -name "*.scala") VerifiedFunLexer.scala VerifiedLanguage.scala VerifiedRegexMatcher.scala VerifiedDFA.scala ListUtils.scala --explain
 scala -cp compiled MainTest

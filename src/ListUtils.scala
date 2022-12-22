@@ -272,6 +272,7 @@ object ListUtils {
   @opaque
   def lemmaRemoveLastFromLMakesItPrefix[B](l: List[B]): Unit = {
     require(!l.isEmpty)
+    decreases(l.size)
     l match {
       case Cons(hd, Nil()) => ()
       case Cons(hd, tl)    => lemmaRemoveLastFromLMakesItPrefix(tl)
@@ -319,6 +320,7 @@ object ListUtils {
   @inlineOnce
   @opaque
   def lemmaGetSuffixOnListWithItSelfIsEmpty[B](l: List[B]): Unit = {
+    decreases(l.size)
     lemmaIsPrefixRefl(l, l)
     l match {
       case Cons(hd, tl) => lemmaGetSuffixOnListWithItSelfIsEmpty(tl)
@@ -366,6 +368,7 @@ object ListUtils {
   @opaque
   def removeDuplicates[B](list: List[B], acc: List[B] = Nil[B]()): List[B] = {
     require(ListOps.noDuplicate(acc))
+    decreases(list.size)
     list match {
       case Cons(hd, tl) if acc.contains(hd) => removeDuplicates(tl, acc)
       case Cons(hd, tl)                     => removeDuplicates(tl, Cons(hd, acc))
@@ -376,7 +379,7 @@ object ListUtils {
   @inlineOnce
   @opaque
   def lemmaSubseqRefl[B](l: List[B]): Unit = {
-
+    decreases(l.size)
     l match {
       case Nil()        => ()
       case Cons(hd, tl) => lemmaSubseqRefl(tl)

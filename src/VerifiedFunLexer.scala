@@ -14,11 +14,10 @@ object MainTest {
   // import ComputableLanguage._
   import RegularExpression._
   import VerifiedRegexMatcher._
-  import VerifiedNFAMatcher._
-  import VerifiedNFA._
+  import VerifiedDFAMatcher._
+  import VerifiedDFA._
   import stainless.io.StdOut.println
   import stainless.io.State
-  // import VerifiedNFA._
   import VerifiedFunLexer._
   @extern
   def main(args: Array[String]): Unit = {
@@ -38,106 +37,55 @@ object MainTest {
     // val input: List[Token[Char]] = List(t1, t2, t1, t2, t1, t1)
     // val rules = List(rule, ruleC, ruleSep)
 
-    // // Regex to NFA tests
-    // val state = State(BigInt(1))
+    val state = State(BigInt(1))
 
     // val output: List[Char] = Lexer.printWithSeparatorTokenWhenNeeded(rules, input, sepToken)
     // println(output.foldLeft("")((s: String, c: Char) => s + c.toString))(state)
-    // // NFATests()(state)
+    DFATests()(state)
 
   }
+
   @extern
-  def NFATests()(implicit @ghost state: State): Unit = {
+  def DFATests()(implicit @ghost state: State): Unit = {
 
-    def testNfaMatch(testValues: List[List[Char]], r: Regex[Char])(implicit @ghost state: State): Boolean = {
-      def testOneValue(v: List[Char], r: Regex[Char])(implicit @ghost state: State): Boolean = {
-        println("testing string: " + v)
-        val longestMatchRegex1 = VerifiedRegexMatcher.findLongestMatch(r, v)
-        val longestMatchNfa1 = VerifiedNFAMatcher.findLongestMatch(fromRegexToNfa(r), v)
-        println("matched against regex: " + longestMatchRegex1)
-        println("matched against nfa: " + longestMatchNfa1)
-        val result = (longestMatchRegex1 == longestMatchNfa1)
-        println("equal = " + result.toString)
-        result
-      }
-      testValues match {
-        case Cons(hd, tl) => testOneValue(hd, r) && testNfaMatch(tl, r)
-        case Nil()        => true
-      }
-    }
-    val r1 = Star(Union(Star(Concat(ElementMatch('a'), ElementMatch('b'))), Concat(ElementMatch('c'), Concat(ElementMatch('d'), ElementMatch('e')))))
-    println(fromRegexToNfa(r1))
-    val stringList1 = List(
-      List('a', 'b', 'a', 'b'),
-      List('a', 'b', 'a', 'b', 'c', 'd', 'e', 'c', 'd', 'e', 'c', 'd', 'e', 'a', 'b', 'a', 'b'),
-      List('a', 'b', 'a', 'b', 'c', 'd', 'e', 'c', 'd', 'e', 'c', 'd', 'e', 'a', 'b', 'a', 'b', 'g', 'g', 'g'),
-      List('a', 'b', 'a', 'b', 'c', 'd', 'e', 'c', 'd', 'e', 'c', 'd', 'e', 'a', 'b', 'a', 'b', 'a'),
-      List('c', 'd', 'e', 'c', 'd', 'e'),
-      List[Char](),
-      List('a', 'b', 'a', 'b', 'a'),
-      List('a', 'b', 'c', 'd', 'e'),
-      List('a', 'c', 'd', 'b'),
-      List('a', 'b', 'c', 'd', 'e', 'a', 'a', 'a', 'c', 'd', 'e')
+    val startState = VerifiedDFA.State(0)
+    val finalState = VerifiedDFA.State(5)
+    val errState = VerifiedDFA.State(6)
+    val transitions = List(
+      Transition(startState, 'w', VerifiedDFA.State(1)),
+      Transition(VerifiedDFA.State(1), 'h', VerifiedDFA.State(2)),
+      Transition(VerifiedDFA.State(2), 'i', VerifiedDFA.State(3)),
+      Transition(VerifiedDFA.State(3), 'l', VerifiedDFA.State(4)),
+      Transition(VerifiedDFA.State(4), 'e', finalState)
     )
-
-    val testResult1 = testNfaMatch(stringList1, r1)
-
-    val r2 = Star(
-      Union(
-        Star(
-          Union(Concat(ElementMatch('a'), ElementMatch('b')), ElementMatch('f'))
-        ),
-        Concat(ElementMatch('c'), Concat(ElementMatch('d'), ElementMatch('e')))
-      )
-    )
-    println(fromRegexToNfa(r2))
-    val stringList2 = List(
-      List('a', 'b', 'a', 'b'),
-      List('a', 'b', 'a', 'b', 'c', 'd', 'e', 'c', 'd', 'e', 'c', 'd', 'e', 'a', 'b', 'a', 'b'),
-      List('a', 'b', 'a', 'b', 'c', 'd', 'e', 'c', 'd', 'e', 'c', 'd', 'e', 'a', 'b', 'a', 'b', 'g', 'g', 'g'),
-      List('a', 'b', 'a', 'b', 'c', 'd', 'e', 'c', 'd', 'e', 'c', 'd', 'e', 'a', 'b', 'a', 'b', 'a'),
-      List('c', 'd', 'e', 'c', 'd', 'e'),
-      List[Char](),
-      List('a', 'b', 'a', 'b', 'a'),
-      List('a', 'b', 'c', 'd', 'e'),
-      List('a', 'c', 'd', 'b'),
-      List('a', 'b', 'c', 'd', 'e', 'a', 'a', 'a', 'c', 'd', 'e'),
-      List('a', 'b', 'a', 'b'),
-      List('a', 'b', 'a', 'b', 'f', 'f', 'c', 'd', 'e', 'c', 'd', 'e', 'c', 'd', 'e', 'a', 'b', 'a', 'b'),
-      List('a', 'b', 'a', 'b', 'c', 'd', 'e', 'c', 'd', 'e', 'c', 'd', 'e', 'a', 'b', 'a', 'b', 'g', 'g', 'g', 'f', 'f'),
-      List('f', 'f', 'a', 'b', 'a', 'b', 'c', 'd', 'e', 'c', 'd', 'e', 'c', 'd', 'e', 'a', 'b', 'a', 'b', 'a'),
-      List('f', 'f', 'c', 'd', 'e', 'c', 'd', 'e'),
-      List('a', 'b', 'a', 'b', 'a', 'f', 'f'),
-      List('a', 'b', 'c', 'd', 'e', 'f'),
-      List('a', 'c', 'f', 'f', 'd', 'b'),
-      List('a', 'b', 'f', 'a', 'b', 'f', 'c', 'd', 'e', 'a', 'a', 'a', 'c', 'd', 'e')
-    )
-
-    val testResult2 = testNfaMatch(stringList2, r2)
-
-    println("TESTS RESULT 1 = " + testResult1.toString)
-    println("TESTS RESULT 2 = " + testResult2.toString)
+    val dfaWhile: DFA[Char] = DFA(startState, List(finalState), errState, transitions)
+    val s1 = List('w', 'h', 'i', 'l', 'e')
+    val s2 = List('w', 'h', 'i', 'l', 'e', 'w', 'h', 'i', 'l', 'e')
+    val s3 = List('w', 'h', 'i', 'l')
+    println("dfaWhile match s1: " + matchDFA(dfaWhile, s1).toString)
+    println("dfaWhile longestmatch with s1: " + VerifiedDFAMatcher.findLongestMatch(dfaWhile, s1).toString)
+    println("dfaWhile longestmatch with s2: " + VerifiedDFAMatcher.findLongestMatch(dfaWhile, s2).toString)
   }
 
 }
 object VerifiedFunLexer {
   import RegularExpression._
   import VerifiedRegexMatcher._
-  import VerifiedNFA._
-  import VerifiedNFAMatcher._
+  import VerifiedDFA._
+  import VerifiedDFAMatcher._
 
   case class Token[C](characters: List[C], tag: String, isSep: Boolean) {
     def getCharacters = characters
     def getTag = tag
     def isSeparator = isSep
   }
-  case class Rule[C](nfa: NFA[C], tag: String, isSeparator: Boolean)
+  case class Rule[C](dfa: DFA[C], tag: String, isSeparator: Boolean)
 
   object Lexer {
 
     @inline
     def ruleValid[C](r: Rule[C]): Boolean = {
-      validNFA(r.nfa) && !matchNFA(r.nfa, Nil()) && r.tag != ""
+      validDFA(r.dfa) && !matchDFA(r.dfa, Nil()) && r.tag != ""
     }
 
     def noDuplicateTag[C](rules: List[Rule[C]], acc: List[String] = Nil()): Boolean = rules match {
@@ -300,17 +248,17 @@ object VerifiedFunLexer {
     ): Option[(Token[C], List[C])] = {
       require(ruleValid(rule))
 
-      val (longestPrefix, suffix) = VerifiedNFAMatcher.findLongestMatch(rule.nfa, input)
+      val (longestPrefix, suffix) = VerifiedDFAMatcher.findLongestMatch(rule.dfa, input)
       if (longestPrefix.isEmpty) {
         None[(Token[C], List[C])]()
       } else {
-        VerifiedNFAMatcher.longestMatchIsAcceptedByMatchOrIsEmpty(rule.nfa, input)
+        VerifiedDFAMatcher.longestMatchIsAcceptedByMatchOrIsEmpty(rule.dfa, input)
         Some[(Token[C], List[C])]((Token(longestPrefix, rule.tag, rule.isSeparator), suffix))
       }
 
     } ensuring (res =>
-      res.isEmpty || matchNFA(
-        rule.nfa,
+      res.isEmpty || matchDFA(
+        rule.dfa,
         res.get._1.getCharacters
       ) && res.get._1.getCharacters ++ res.get._2 == input && res.get._2.size < input.size && res.get._1.getTag == rule.tag && res.get._1.isSeparator == rule.isSeparator
     )
@@ -342,7 +290,7 @@ object VerifiedFunLexer {
       require(r != otherR)
       require({
         lemmaRuleInListAndRulesValidThenRuleIsValid(r, rules)
-        tokens.isEmpty || matchNFA(r.nfa, tokens.head.getCharacters)
+        tokens.isEmpty || matchDFA(r.dfa, tokens.head.getCharacters)
       })
 
       lemmaRuleInListAndRulesValidThenRuleIsValid(otherR, rules)
@@ -391,8 +339,8 @@ object VerifiedFunLexer {
         }
       }
 
-    } ensuring (if (ListUtils.getIndex(rules, otherR) < ListUtils.getIndex(rules, r)) !matchNFA(otherR.nfa, otherP)
-                else tokens.size > 0 && otherP.size <= tokens.head.getCharacters.size || !matchNFA(otherR.nfa, otherP))
+    } ensuring (if (ListUtils.getIndex(rules, otherR) < ListUtils.getIndex(rules, r)) !matchDFA(otherR.dfa, otherP)
+                else tokens.size > 0 && otherP.size <= tokens.head.getCharacters.size || !matchDFA(otherR.dfa, otherP))
 
     // Invertability -------------------------------------------------------------------------------------------------------------------------
 
@@ -567,7 +515,7 @@ object VerifiedFunLexer {
       require(token.isSeparator == rule.isSeparator)
       require({
         lemmaRuleInListAndRulesValidThenRuleIsValid(rule, rules)
-        matchNFA(rule.nfa, token.getCharacters)
+        matchDFA(rule.dfa, token.getCharacters)
       })
       require(!suffix.isEmpty)
 
@@ -582,7 +530,7 @@ object VerifiedFunLexer {
       ListUtils.lemmaConcatTwoListThenFirstIsPrefix(foundToken.getCharacters, foundSuffix)
       assert(ListUtils.isPrefix(foundToken.getCharacters, input))
       assert(foundRule.tag == foundToken.getTag)
-      assert(matchNFA(foundRule.nfa, foundToken.getCharacters))
+      assert(matchDFA(foundRule.dfa, foundToken.getCharacters))
       assert(foundRule.isSeparator == foundToken.isSeparator)
 
       lemmaMaxPrefixTagSoFindMaxPrefOneRuleWithThisRule(rules, foundToken.getCharacters, input, foundSuffix, foundRule)
@@ -670,7 +618,7 @@ object VerifiedFunLexer {
       ListUtils.lemmaPrefixStaysPrefixWhenAddingToSuffix(firstT.getCharacters, input, suffix)
       lemmaMaxPrefReturnTokenSoItsTagBelongsToARule(rules, input, firstT)
       val rule: Rule[C] = getRuleFromTag(rules, firstT.getTag).get
-      assert(matchNFA(rule.nfa, firstT.getCharacters))
+      assert(matchDFA(rule.dfa, firstT.getCharacters))
 
       if (maxPrefix(rules, input ++ suffix).isEmpty) {
         lemmaMaxPrefixReturnsNoneThenAnyRuleReturnsNone(rule, rules, input ++ suffix)
@@ -689,7 +637,7 @@ object VerifiedFunLexer {
         case Cons(hd, tl) => {
           if (maxPrefixOneRule(hd, input).isDefined && maxPrefixOneRule(hd, input).get._1 == token) {
             assert(hd.tag == token.getTag)
-            assert(matchNFA(hd.nfa, token.getCharacters))
+            assert(matchDFA(hd.dfa, token.getCharacters))
           } else {
             if (!tl.isEmpty) {
               lemmaInvariantOnRulesThenOnTail(hd, tl)
@@ -702,7 +650,7 @@ object VerifiedFunLexer {
         }
         case Nil() => ()
       }
-    } ensuring (getRuleFromTag(rules, token.getTag).isDefined && matchNFA(getRuleFromTag(rules, token.getTag).get.nfa, token.getCharacters) &&
+    } ensuring (getRuleFromTag(rules, token.getTag).isDefined && matchDFA(getRuleFromTag(rules, token.getTag).get.dfa, token.getCharacters) &&
       token.isSeparator == getRuleFromTag(rules, token.getTag).get.isSeparator)
 
     def lemmaGetRuleFromTagInListThenSameListWhenAddingARuleDiffTag[C](rules: List[Rule[C]], newHd: Rule[C], tag: String): Unit = {
@@ -741,7 +689,7 @@ object VerifiedFunLexer {
       lemmaMaxPrefixReturnsNoneThenAnyRuleReturnsNone(r, rules, input)
       lemmaMaxPrefOneRuleReturnsNoneThenNoPrefMaxRegex(r, p, input)
 
-    } ensuring (!matchNFA(r.nfa, p))
+    } ensuring (!matchDFA(r.dfa, p))
 
     def lemmaMaxPrefNoSmallerRuleMatches[C](
         rules: List[Rule[C]],
@@ -758,7 +706,7 @@ object VerifiedFunLexer {
       require(maxPrefix(rules, input) == Some(Token(p, r.tag, r.isSeparator), ListUtils.getSuffix(input, p)))
       require(ListUtils.getIndex(rules, rBis) < ListUtils.getIndex(rules, r))
       require(ruleValid(r))
-      require(matchNFA(r.nfa, p))
+      require(matchDFA(r.dfa, p))
 
       assert(ListUtils.getIndex(rules, rBis) < ListUtils.getIndex(rules, r))
 
@@ -787,16 +735,16 @@ object VerifiedFunLexer {
                 token
               )
               check(false)
-              check(!matchNFA(rBis.nfa, p))
+              check(!matchDFA(rBis.dfa, p))
             } else {
               if (token.getCharacters.size < p.size) {
                 ListUtils.lemmaConcatTwoListThenFirstIsPrefix(token.getCharacters, suff)
                 lemmaMaxPrefixOneRuleOutputsMaxPrefix(rBis, token.getCharacters, token, input, suff, p)
-                check(!matchNFA(rBis.nfa, p))
+                check(!matchDFA(rBis.dfa, p))
               } else {
                 lemmaNoDuplicateTagAndDiffIndexThenNoTwoRulesTagsEq(rules, rBis, r)
                 check(Some(token, suff) != Some(Token(p, r.tag, r.isSeparator), ListUtils.getSuffix(input, p)))
-                check(!matchNFA(rBis.nfa, p))
+                check(!matchDFA(rBis.dfa, p))
               }
             }
           }
@@ -814,7 +762,7 @@ object VerifiedFunLexer {
         }
         case Nil() => check(false)
       }
-    } ensuring (!matchNFA(rBis.nfa, p))
+    } ensuring (!matchDFA(rBis.dfa, p))
 
     /** Lemma which proves that indeed the getMaxPrefix indeed returns the maximal prefix that matches any rules
       *
@@ -843,7 +791,7 @@ object VerifiedFunLexer {
 
       require({
         lemmaRuleInListAndRulesValidThenRuleIsValid(r, rules)
-        !matchNFA(r.nfa, p)
+        !matchDFA(r.dfa, p)
       })
       require({
         ListUtils.lemmaIsPrefixRefl(input, input)
@@ -862,7 +810,7 @@ object VerifiedFunLexer {
       // Main lemma
       lemmaMaxPrefixOutputsMaxPrefixInner(rules, r, p, input, pBis, rBis)
 
-    } ensuring (!matchNFA(rBis.nfa, pBis))
+    } ensuring (!matchDFA(rBis.dfa, pBis))
 
     def lemmaMaxPrefixOutputsMaxPrefixInner[C](
         rules: List[Rule[C]],
@@ -880,8 +828,8 @@ object VerifiedFunLexer {
       require(rules.contains(r))
       require(rules.contains(rBis))
 
-      require(validNFA(r.nfa))
-      require(matchNFA(r.nfa, p))
+      require(validDFA(r.dfa))
+      require(matchDFA(r.dfa, p))
       require(ruleValid(r))
       require({
         ListUtils.lemmaIsPrefixRefl(input, input)
@@ -893,7 +841,7 @@ object VerifiedFunLexer {
       require(ruleValid(rBis))
       require(maxPrefix(rules, input) == Some(Token(p, r.tag, r.isSeparator), ListUtils.getSuffix(input, p)))
 
-      assert(validNFA(r.nfa))
+      assert(validDFA(r.dfa))
 
       ListUtils.lemmaIsPrefixThenSmallerEqSize(pBis, input)
       lemmaRuleInListAndRulesValidThenRuleIsValid(rBis, rules)
@@ -901,7 +849,7 @@ object VerifiedFunLexer {
       val bisTokenSuff = maxPrefixOneRule(rBis, input) // == Some(Token(pBis, rBis.tag), ListUtils.getSuffix(input, pBis))
       if (bisTokenSuff.isEmpty) {
         lemmaMaxPrefOneRuleReturnsNoneThenNoPrefMaxRegex(rBis, pBis, input)
-        check(!matchNFA(rBis.nfa, pBis))
+        check(!matchDFA(rBis.dfa, pBis))
       } else {
         val tBis = bisTokenSuff.get._1
         val suffixBis = bisTokenSuff.get._2
@@ -918,12 +866,12 @@ object VerifiedFunLexer {
             rBis,
             tBis
           )
-          check(!matchNFA(rBis.nfa, pBis))
+          check(!matchDFA(rBis.dfa, pBis))
         } else {
           if (tBis.getCharacters.size < pBis.size) {
             assert(ListUtils.isPrefix(tBis.getCharacters, input))
             lemmaMaxPrefixOneRuleOutputsMaxPrefix(rBis, tBis.getCharacters, tBis, input, suffixBis, pBis)
-            check(!matchNFA(rBis.nfa, pBis))
+            check(!matchDFA(rBis.dfa, pBis))
           } else {
             if (pBis.size == tBis.getCharacters.size) {
               ListUtils.lemmaIsPrefixSameLengthThenSameList(pBis, tBis.getCharacters, input)
@@ -943,14 +891,14 @@ object VerifiedFunLexer {
             )
             assert(tBis.getCharacters.size <= p.size)
             check(false)
-            check(!matchNFA(rBis.nfa, pBis))
+            check(!matchDFA(rBis.dfa, pBis))
 
           }
         }
 
       }
 
-    } ensuring (!matchNFA(rBis.nfa, pBis))
+    } ensuring (!matchDFA(rBis.dfa, pBis))
 
     def lemmaMaxPrefixTagSoFindMaxPrefOneRuleWithThisRule[C](
         rules: List[Rule[C]],
@@ -966,7 +914,7 @@ object VerifiedFunLexer {
       require(maxPrefix(rules, input) == Some(Token(p, r.tag, r.isSeparator), suffix))
       require({
         lemmaRuleInListAndRulesValidThenRuleIsValid(r, rules)
-        matchNFA(r.nfa, p)
+        matchDFA(r.dfa, p)
       })
       decreases(rules.size)
 
@@ -1125,8 +1073,8 @@ object VerifiedFunLexer {
       require(pBis.size > p.size)
 
       require(ruleValid(r))
-      require(validNFA(r.nfa))
-      require(matchNFA(r.nfa, p))
+      require(validDFA(r.dfa))
+      require(matchDFA(r.dfa, p))
       require(t.getCharacters == p)
       require({
         ListUtils.lemmaIsPrefixRefl(input, input)
@@ -1135,8 +1083,8 @@ object VerifiedFunLexer {
 
       ListUtils.lemmaIsPrefixRefl(input, input)
 
-      VerifiedNFAMatcher.longestMatchNoBiggerStringMatch(r.nfa, input, p, pBis)
-    } ensuring (!matchNFA(r.nfa, pBis))
+      VerifiedDFAMatcher.longestMatchNoBiggerStringMatch(r.dfa, input, p, pBis)
+    } ensuring (!matchDFA(r.dfa, pBis))
 
     def lemmaMaxPrefOneRuleReturnsNoneThenNoPrefMaxRegex[C](
         r: Rule[C],
@@ -1147,9 +1095,9 @@ object VerifiedFunLexer {
       require(ruleValid(r))
       require(maxPrefixOneRule(r, input) == None[(Token[C], List[C])]())
 
-      VerifiedNFAMatcher.longestMatchNoBiggerStringMatch(r.nfa, input, Nil(), p)
+      VerifiedDFAMatcher.longestMatchNoBiggerStringMatch(r.dfa, input, Nil(), p)
 
-    } ensuring (!matchNFA(r.nfa, p))
+    } ensuring (!matchDFA(r.dfa, p))
 
     def lemmaRuleInListAndRulesValidThenRuleIsValid[C](r: Rule[C], rules: List[Rule[C]]): Unit = {
       require(rules.contains(r))
