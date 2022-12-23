@@ -31,7 +31,11 @@ object MainTest {
       VerifiedDFA.State(0),
       List(VerifiedDFA.State(2)),
       VerifiedDFA.State(3),
-      List(Transition(VerifiedDFA.State(0), 'a', VerifiedDFA.State(1)), Transition(VerifiedDFA.State(1), 'b', VerifiedDFA.State(2)))
+      List(
+        Transition(VerifiedDFA.State(0), 'a', VerifiedDFA.State(1)),
+        Transition(VerifiedDFA.State(1), 'b', VerifiedDFA.State(2)),
+        Transition(VerifiedDFA.State(2), 'a', VerifiedDFA.State(1))
+      )
     )
     val rule = Rule(dfaAb, "ab", false)
 
@@ -51,12 +55,19 @@ object MainTest {
 
     val state = State(BigInt(1))
 
-    println(matchDFA(dfaC, Nil()))(state)
+    val output: List[Char] = Lexer.printWithSeparatorTokenWhenNeeded(rules, input, sepToken)
 
-    println(Lexer.maxPrefixOneRule(ruleC, List('c', 'c', 'c')))(state)
+    val lexed = Lexer.lex(rules, output)
 
-    // val output: List[Char] = Lexer.printWithSeparatorTokenWhenNeeded(rules, input, sepToken)
-    // println(output.foldLeft("")((s: String, c: Char) => s + c.toString))(state)
+    println("Token list input:")(state)
+    println(input.foldLeft("")((s: String, t: Token[Char]) => s + t.toString + "\n"))(state)
+
+    println("Token list printed when separator token when needed: " + output.foldLeft("")((s: String, c: Char) => s + c.toString))(state)
+
+    println("After lexing again:")(state)
+    println(lexed._1.foldLeft("")((s: String, t: Token[Char]) => s + t.toString + "\n"))(state)
+
+    println("tokens -> print -> tokens modulo separator tokens equality: " + (lexed._1.filter(!_.isSeparator) == input))(state)
     // DFATests()(state)
 
   }
