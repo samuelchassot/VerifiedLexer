@@ -87,6 +87,7 @@ object ListUtils {
     require(l.contains(e1) && l.contains(e2))
     require(e1 != e2)
     require(getIndex(l, e1) < getIndex(l, e2))
+    decreases(l.size)
 
     l match {
       case Cons(hd, tl) if hd == e1 => lemmaGetIndexBiggerAndHeadEqThenTailContains(l, e1, e2)
@@ -485,6 +486,8 @@ object ListUtils {
   def lemmaForallContainsAndNoDuplicateThenSmallerList[B](l: List[B], lIn: List[B]): Unit = {
     require(lIn.forall(e => l.contains(e)))
     require(ListOps.noDuplicate(lIn))
+    decreases(lIn.size)
+
     lIn match {
       case Cons(hd, tl) => {
 

@@ -16,14 +16,30 @@ object VerifiedDFA {
   case class Transition[C](from: State, c: C, to: State)
   case class DFA[C](startState: State, finalStates: List[State], errorState: State, transitions: List[Transition[C]])
 
-  def validDFA[C](dfa: DFA[C]): Boolean = uniqueStateCharTransitions(dfa.transitions, Nil())
+  def validDFA[C](dfa: DFA[C]): Boolean =
+    uniqueStateCharTransitions(dfa.transitions, Nil()) && noTransitionOutOfErrorState(dfa.transitions, dfa.errorState) && !dfa.finalStates.contains(dfa.errorState)
 
   def uniqueStateCharTransitions[C](l: List[Transition[C]], seenStateCharPairs: List[(State, C)]): Boolean = {
     l match {
       case Cons(hd, tl) => !seenStateCharPairs.contains((hd.from, hd.c)) && uniqueStateCharTransitions(tl, Cons((hd.from, hd.c), seenStateCharPairs))
       case Nil()        => true
     }
+  }
+  def noTransitionOutOfErrorState[C](l: List[Transition[C]], errorState: State): Boolean = {
+    l match {
+      case Cons(hd, tl) => hd.from != errorState && noTransitionOutOfErrorState(tl, errorState)
+      case Nil()        => true
+    }
+  }
 
+  @inline
+  def usedCharacters[C](dfa: DFA[C]): List[C] = usedCharactersTrans(dfa.transitions)
+
+  def usedCharactersTrans[C](l: List[Transition[C]]): List[C] = {
+    l match {
+      case Cons(hd, tl) => Cons(hd.c, usedCharactersTrans(tl))
+      case Nil()        => Nil()
+    }
   }
 
 }
@@ -35,7 +51,7 @@ object VerifiedDFAMatcher {
   @inline
   def matchDFA[C](dfa: DFA[C], input: List[C]): Boolean = {
     require(validDFA(dfa))
-    findLongestMatch(dfa, input)._2.isEmpty
+    !input.isEmpty && findLongestMatch(dfa, input)._2.isEmpty
   } ensuring (res => !res || findLongestMatch(dfa, input)._1 == input)
 
   @inline
@@ -447,5 +463,218 @@ object VerifiedDFAMatcher {
     }
 
   } ensuring (findLongestMatchInner(dfa, moveMultipleSteps(dfa, dfa.startState, longestM), longestM, suffix)._1 == longestM)
+
+  @opaque
+  @inlineOnce
+  def lemmaDFACannotMatchAStringContainingACharItDoesNotContain[C](dfa: DFA[C], s: List[C], c: C): Unit = {
+    require(validDFA(dfa))
+    require(s.contains(c))
+    require(!usedCharactersTrans(dfa.transitions).contains(c))
+
+    lemmaDFACannotMatchAStringContainingACharItDoesNotContainInner(dfa, s, c, Nil(), s, dfa.startState)
+  } ensuring (!matchDFA(dfa, s))
+
+  @opaque
+  @inlineOnce
+  def lemmaDFACannotMatchAStringContainingACharItDoesNotContainInner[C](dfa: DFA[C], s: List[C], c: C, pastChars: List[C], suffix: List[C], from: State): Unit = {
+    require(validDFA(dfa))
+    require(suffix.contains(c))
+    require(!usedCharactersTrans(dfa.transitions).contains(c))
+    require(s == pastChars ++ suffix)
+    require(moveMultipleSteps(dfa, dfa.startState, pastChars) == from)
+    decreases(suffix.size)
+
+    ListUtils.lemmaSubseqRefl(dfa.transitions)
+
+    suffix match {
+      case Cons(hd, tl) if hd == c => {
+        lemmaMoveOneStepWithNotUsedCharThenErrorState(dfa, dfa.transitions, c, from)
+        val nextState = moveOneStep(dfa, dfa.transitions, from, c)
+        lemmaMoveOneStepWithNotUsedCharThenErrorState[C](dfa, dfa.transitions, c, from)
+        assert(nextState == dfa.errorState)
+        val newPastChars = pastChars ++ List(suffix.head)
+        val newSuffix = suffix.tail
+        ListUtils.lemmaTwoListsConcatAssociativity(pastChars, List(suffix.head), newSuffix)
+        lemmaMoveOneStepAfterMultipleIsSameAsMultipleWithNewChar(dfa, dfa.startState, pastChars, suffix.head)
+        lemmaFindLongestMatchReturnNilFromErrorState(dfa, newPastChars, newSuffix, s)
+      }
+      case Cons(hd, tl) if hd != c => {
+        val newPastChars = pastChars ++ List(suffix.head)
+        val newSuffix = suffix.tail
+        val newFrom = moveOneStep(dfa, dfa.transitions, from, suffix.head)
+        ListUtils.lemmaTwoListsConcatAssociativity(pastChars, List(suffix.head), newSuffix)
+        lemmaMoveOneStepAfterMultipleIsSameAsMultipleWithNewChar(dfa, dfa.startState, pastChars, suffix.head)
+        lemmaDFACannotMatchAStringContainingACharItDoesNotContainInner(dfa, s, c, newPastChars, newSuffix, newFrom)
+      }
+      case Nil() => check(false)
+    }
+
+  } ensuring (!findLongestMatchInner(dfa, from, pastChars, suffix)._2.isEmpty)
+
+  @opaque
+  @inlineOnce
+  def lemmaFindLongestMatchReturnNilFromErrorState[C](dfa: DFA[C], pastChars: List[C], suffix: List[C], input: List[C]): Unit = {
+    require(validDFA(dfa))
+    require(dfa.errorState == moveMultipleSteps(dfa, dfa.startState, pastChars))
+
+    decreases(suffix.size)
+
+    val from = dfa.errorState
+
+    if (suffix.isEmpty) {
+      if (dfa.finalStates.contains(from)) {
+        check(false)
+      } else {
+        ()
+      }
+    } else {
+
+      val nextChar = suffix.head
+
+      val newPrefix = pastChars ++ List(nextChar)
+      val newSuffix = suffix.tail
+
+      ListUtils.lemmaConcatTwoListThenFirstIsPrefix(pastChars, suffix)
+      ListUtils.lemmaAddHeadSuffixToPrefixStillPrefix(pastChars, pastChars ++ suffix)
+
+      ListUtils.lemmaTwoListsConcatAssociativity(pastChars, List(nextChar), newSuffix)
+      ListUtils.lemmaSubseqRefl(dfa.transitions)
+
+      val nextState = moveOneStep(dfa, dfa.transitions, from, nextChar)
+
+      lemmaMoveOneStepAfterMultipleIsSameAsMultipleWithNewChar(dfa, dfa.startState, pastChars, nextChar)
+
+      lemmaNoTransitionsFromErrorStateThenFixPointOneStep(dfa, dfa.transitions, nextChar)
+      assert(nextState == dfa.errorState)
+
+      val recursive = findLongestMatchInner(dfa, nextState, newPrefix, newSuffix)
+
+      if (dfa.finalStates.contains(from)) {
+        check(false)
+
+      } else {
+        lemmaFindLongestMatchReturnNilFromErrorState(dfa, newPrefix, newSuffix, input)
+      }
+    }
+
+  } ensuring (findLongestMatchInner(dfa, dfa.errorState, pastChars, suffix)._1.isEmpty)
+
+  @opaque
+  @inlineOnce
+  def lemmaMoveOneStepWithNotUsedCharThenErrorState[C](dfa: DFA[C], transitionsListRec: List[Transition[C]], c: C, from: State): Unit = {
+    require(validDFA(dfa))
+    require(ListSpecs.subseq(transitionsListRec, dfa.transitions))
+    require(!usedCharactersTrans(dfa.transitions).contains(c))
+    decreases(transitionsListRec.size)
+
+    lemmaCharNotInUsedCharThenNotInSubseqOfTransitions(dfa.transitions, transitionsListRec, c)
+    lemmaNoTransitionOutOfErrorStateThenForASubSeq(dfa.transitions, dfa.errorState, transitionsListRec)
+
+    transitionsListRec match {
+      case Cons(hd, tl) => {
+        lemmaNoTransitionOutOfErrorStateThenForAParticularTransition(transitionsListRec, dfa.errorState, hd)
+        assert(hd.c != c)
+        assert(hd.from != dfa.errorState)
+        ListSpecs.subseqTail(transitionsListRec, dfa.transitions)
+        lemmaMoveOneStepWithNotUsedCharThenErrorState(dfa, tl, c, from)
+
+      }
+      case Nil() => ()
+    }
+
+  } ensuring (moveOneStep(dfa, transitionsListRec, from, c) == dfa.errorState)
+
+  @opaque
+  @inlineOnce
+  def lemmaCharNotInUsedCharThenNotInSubseqOfTransitions[C](l: List[Transition[C]], sub: List[Transition[C]], c: C): Unit = {
+    require(!usedCharactersTrans(l).contains(c))
+    require(ListSpecs.subseq(sub, l))
+    decreases(l.size)
+
+    (sub, l) match {
+      case (Nil(), _) => ()
+      case (Cons(x, xs), Cons(y, ys)) => {
+        if (x == y && ListSpecs.subseq(xs, ys)) {
+          lemmaCharNotInUsedCharThenNotInSubseqOfTransitions(ys, xs, c)
+        } else {
+          lemmaCharNotInUsedCharThenNotInSubseqOfTransitions(ys, sub, c)
+        }
+      }
+      case _ => check(false)
+    }
+
+  } ensuring (!usedCharactersTrans(sub).contains(c))
+
+  @opaque
+  @inlineOnce
+  def lemmaNoTransitionsFromErrorStateThenFixPointMultipleSteps[C](dfa: DFA[C], cs: List[C]): Unit = {
+    require(validDFA(dfa))
+
+    decreases(cs.size)
+
+    cs match {
+      case Cons(hd, tl) => {
+        ListUtils.lemmaSubseqRefl(dfa.transitions)
+        val nextState = moveOneStep(dfa, dfa.transitions, dfa.errorState, hd)
+        lemmaNoTransitionsFromErrorStateThenFixPointOneStep(dfa, dfa.transitions, hd)
+        assert(nextState == dfa.errorState)
+        lemmaNoTransitionsFromErrorStateThenFixPointMultipleSteps(dfa, tl)
+      }
+      case Nil() => ()
+    }
+  } ensuring (moveMultipleSteps(dfa, dfa.errorState, cs) == dfa.errorState)
+
+  @opaque
+  @inlineOnce
+  def lemmaNoTransitionsFromErrorStateThenFixPointOneStep[C](dfa: DFA[C], transitionsListRec: List[Transition[C]], c: C): Unit = {
+    require(validDFA(dfa))
+    require(ListSpecs.subseq(transitionsListRec, dfa.transitions))
+    decreases(transitionsListRec.size)
+
+    transitionsListRec match {
+      case Cons(hd, tl) => {
+        lemmaNoTransitionOutOfErrorStateThenForASubSeq(dfa.transitions, dfa.errorState, transitionsListRec)
+        lemmaNoTransitionOutOfErrorStateThenForAParticularTransition(transitionsListRec, dfa.errorState, hd)
+        assert(hd.from != dfa.errorState)
+        ListSpecs.subseqTail(transitionsListRec, dfa.transitions)
+        lemmaNoTransitionsFromErrorStateThenFixPointOneStep(dfa, tl, c)
+      }
+      case Nil() => ()
+    }
+  } ensuring (moveOneStep(dfa, transitionsListRec, dfa.errorState, c) == dfa.errorState)
+
+  @opaque
+  @inlineOnce
+  def lemmaNoTransitionOutOfErrorStateThenForASubSeq[C](l: List[Transition[C]], errorState: State, sub: List[Transition[C]]): Unit = {
+    require(noTransitionOutOfErrorState(l, errorState))
+    require(ListSpecs.subseq(sub, l))
+    decreases(l.size)
+
+    (sub, l) match {
+      case (Nil(), _) => ()
+      case (Cons(x, xs), Cons(y, ys)) => {
+        if (x == y && ListSpecs.subseq(xs, ys)) {
+          lemmaNoTransitionOutOfErrorStateThenForASubSeq(ys, errorState, xs)
+        } else {
+          lemmaNoTransitionOutOfErrorStateThenForASubSeq(ys, errorState, sub)
+        }
+      }
+      case _ => check(false)
+    }
+  } ensuring (noTransitionOutOfErrorState(sub, errorState))
+
+  @opaque
+  @inlineOnce
+  def lemmaNoTransitionOutOfErrorStateThenForAParticularTransition[C](l: List[Transition[C]], errorState: State, t: Transition[C]): Unit = {
+    require(noTransitionOutOfErrorState(l, errorState))
+    require(l.contains(t))
+
+    l match {
+      case Cons(hd, tl) if hd == t => ()
+      case Cons(hd, tl)            => lemmaNoTransitionOutOfErrorStateThenForAParticularTransition(tl, errorState, t)
+      case Nil()                   => check(false)
+    }
+
+  } ensuring (t.from != errorState)
 
 }
