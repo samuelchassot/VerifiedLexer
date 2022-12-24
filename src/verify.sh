@@ -1,1 +1,1 @@
-stainless-scalac VerifiedRegexMatcher.scala  ListUtils.scala VerifiedNFA.scala VerifiedFunLexer.scala -Dparallel=3 --config-file=stainless.conf
+stainless-dotty ListUtils.scala VerifiedDFA.scala VerifiedFunLexer.scala --config-file=stainless.conf -Dparallel=3
