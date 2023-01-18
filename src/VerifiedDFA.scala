@@ -6,7 +6,6 @@ import stainless.lang._
 import stainless.collection._
 import stainless.annotation._
 import stainless.proof._
-import scala.compiletime.ops.long
 
 object VerifiedDFA {
   case class State(label: BigInt) {
