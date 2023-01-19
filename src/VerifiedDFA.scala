@@ -73,35 +73,41 @@ object VerifiedDFAMatcher {
       }
     } else {
 
-      val nextChar = suffix.head
-
-      val newPrefix = pastChars ++ List(nextChar)
-      val newSuffix = suffix.tail
-
-      ListUtils.lemmaConcatTwoListThenFirstIsPrefix(pastChars, suffix)
-      ListUtils.lemmaAddHeadSuffixToPrefixStillPrefix(pastChars, pastChars ++ suffix)
-
-      ListUtils.lemmaTwoListsConcatAssociativity(pastChars, List(nextChar), newSuffix)
-      ListUtils.lemmaSubseqRefl(dfa.transitions)
-
-      val nextState = moveOneStep(dfa, dfa.transitions, from, nextChar)
-
-      lemmaMoveOneStepAfterMultipleIsSameAsMultipleWithNewChar(dfa, dfa.startState, pastChars, nextChar)
-
-      val recursive = findLongestMatchInner(dfa, nextState, newPrefix, newSuffix)
-
-      if (dfa.finalStates.contains(from)) {
-        if (recursive._1.size > pastChars.size) {
-          recursive
-        } else {
-          ListUtils.lemmaConcatTwoListThenFirstIsPrefix(newPrefix, newSuffix)
-          assert(ListUtils.isPrefix(newPrefix, newPrefix ++ newSuffix))
-          assert(ListUtils.isPrefix(newPrefix, pastChars ++ suffix))
-          (pastChars, suffix)
-        }
+      if (from == dfa.errorState) {
+        // From the invariant => trap state => return directly
+        (Nil(), pastChars ++ suffix)
       } else {
-        recursive
+        val nextChar = suffix.head
+
+        val newPrefix = pastChars ++ List(nextChar)
+        val newSuffix = suffix.tail
+
+        ListUtils.lemmaConcatTwoListThenFirstIsPrefix(pastChars, suffix)
+        ListUtils.lemmaAddHeadSuffixToPrefixStillPrefix(pastChars, pastChars ++ suffix)
+
+        ListUtils.lemmaTwoListsConcatAssociativity(pastChars, List(nextChar), newSuffix)
+        ListUtils.lemmaSubseqRefl(dfa.transitions)
+
+        val nextState = moveOneStep(dfa, dfa.transitions, from, nextChar)
+
+        lemmaMoveOneStepAfterMultipleIsSameAsMultipleWithNewChar(dfa, dfa.startState, pastChars, nextChar)
+
+        val recursive = findLongestMatchInner(dfa, nextState, newPrefix, newSuffix)
+
+        if (dfa.finalStates.contains(from)) {
+          if (recursive._1.size > pastChars.size) {
+            recursive
+          } else {
+            ListUtils.lemmaConcatTwoListThenFirstIsPrefix(newPrefix, newSuffix)
+            assert(ListUtils.isPrefix(newPrefix, newPrefix ++ newSuffix))
+            assert(ListUtils.isPrefix(newPrefix, pastChars ++ suffix))
+            (pastChars, suffix)
+          }
+        } else {
+          recursive
+        }
       }
+
     }
 
   } ensuring (res =>
@@ -136,6 +142,24 @@ object VerifiedDFAMatcher {
     }
   } ensuring (res => true)
 
+  def moveMultipleStepsOpt[C](dfa: DFA[C], from: State, cs: List[C]): State = {
+    require(validDFA(dfa))
+    decreases(cs.size)
+    cs match {
+      case Cons(hd, tl) if from == dfa.errorState => {
+        // Optimisation as it stops as soon as it reaches the error state.
+        // It is correct because the invariant says that no transitions can go out of the error state
+        lemmaNoTransitionsFromErrorStateThenFixPointMultipleSteps(dfa, cs)
+        dfa.errorState
+      }
+      case Cons(hd, tl) => {
+        ListUtils.lemmaSubseqRefl(dfa.transitions)
+        moveMultipleSteps(dfa, moveOneStep(dfa, dfa.transitions, from, hd), tl)
+      }
+      case Nil() => from
+    }
+  } ensuring (res => res == moveMultipleSteps(dfa, from, cs))
+
   @opaque
   @inlineOnce
   def lemmaMoveOneStepAfterMultipleIsSameAsMultipleWithNewChar[C](dfa: DFA[C], from: State, cs: List[C], newC: C): Unit = {
@@ -152,6 +176,19 @@ object VerifiedDFAMatcher {
     ListUtils.lemmaSubseqRefl(dfa.transitions)
     moveMultipleSteps(dfa, from, cs ++ List(newC)) == moveOneStep(dfa, dfa.transitions, moveMultipleSteps(dfa, from, cs), newC)
   })
+
+  def lemmaMoveMultipleStepsFromStartIsEqualToMoveFromStateAfterPrefix[C](dfa: DFA[C], from: State, cs: List[C], prefix: List[C], suffix: List[C]): Unit = {
+    require(validDFA(dfa))
+    require(cs == prefix ++ suffix)
+    prefix match {
+      case Cons(hd, tl) => {
+        ListUtils.lemmaSubseqRefl(dfa.transitions)
+        lemmaMoveMultipleStepsFromStartIsEqualToMoveFromStateAfterPrefix(dfa, moveOneStep(dfa, dfa.transitions, from, hd), cs.tail, tl, suffix)
+      }
+      case Nil() => ()
+    }
+
+  } ensuring (moveMultipleSteps(dfa, from, cs) == moveMultipleSteps(dfa, moveMultipleSteps(dfa, from, prefix), suffix))
 
   // Longest match theorems
   def longestMatchIsAcceptedByMatchOrIsEmpty[C](dfa: DFA[C], input: List[C]): Unit = {
@@ -180,46 +217,52 @@ object VerifiedDFAMatcher {
       }
     } else {
 
-      val nextChar = suffix.head
+      if (from == dfa.errorState) {
 
-      val newPrefix = pastChars ++ List(nextChar)
-      val newSuffix = suffix.tail
+        ()
+      } else {
 
-      ListUtils.lemmaConcatTwoListThenFirstIsPrefix(pastChars, suffix)
-      ListUtils.lemmaAddHeadSuffixToPrefixStillPrefix(pastChars, pastChars ++ suffix)
+        val nextChar = suffix.head
 
-      ListUtils.lemmaTwoListsConcatAssociativity(pastChars, List(nextChar), newSuffix)
-      ListUtils.lemmaSubseqRefl(dfa.transitions)
+        val newPrefix = pastChars ++ List(nextChar)
+        val newSuffix = suffix.tail
 
-      val nextState = moveOneStep(dfa, dfa.transitions, from, nextChar)
+        ListUtils.lemmaConcatTwoListThenFirstIsPrefix(pastChars, suffix)
+        ListUtils.lemmaAddHeadSuffixToPrefixStillPrefix(pastChars, pastChars ++ suffix)
 
-      lemmaMoveOneStepAfterMultipleIsSameAsMultipleWithNewChar(dfa, dfa.startState, pastChars, nextChar)
+        ListUtils.lemmaTwoListsConcatAssociativity(pastChars, List(nextChar), newSuffix)
+        ListUtils.lemmaSubseqRefl(dfa.transitions)
 
-      val recursive = findLongestMatchInner(dfa, nextState, newPrefix, newSuffix)
+        val nextState = moveOneStep(dfa, dfa.transitions, from, nextChar)
 
-      if (dfa.finalStates.contains(from)) {
-        if (recursive._1.size > pastChars.size) {
+        lemmaMoveOneStepAfterMultipleIsSameAsMultipleWithNewChar(dfa, dfa.startState, pastChars, nextChar)
+
+        val recursive = findLongestMatchInner(dfa, nextState, newPrefix, newSuffix)
+
+        if (dfa.finalStates.contains(from)) {
+          if (recursive._1.size > pastChars.size) {
+            // recursive
+            longestMatchIsAcceptedByMatchOrIsEmptyInner(dfa, newPrefix, newSuffix, matchedP, nextState)
+            ()
+          } else {
+            ListUtils.lemmaConcatTwoListThenFirstIsPrefix(newPrefix, newSuffix)
+            assert(ListUtils.isPrefix(newPrefix, newPrefix ++ newSuffix))
+            assert(ListUtils.isPrefix(newPrefix, pastChars ++ suffix))
+
+            assert(findLongestMatchInner(dfa, from, pastChars, suffix)._1 == matchedP)
+            assert(pastChars.size == matchedP.size)
+            assert(pastChars == matchedP)
+            findLongestMatchFromItThenSameWithoutSuffixSame(dfa, pastChars ++ suffix, pastChars, suffix)
+            findLongestMatchFromItThenFromSmaller(dfa, pastChars, pastChars, Nil(), Nil(), pastChars)
+            // (pastChars, suffix)
+            ()
+          }
+        } else {
           // recursive
+          ListUtils.lemmaConcatTwoListThenFirstIsPrefix(newPrefix, newSuffix)
           longestMatchIsAcceptedByMatchOrIsEmptyInner(dfa, newPrefix, newSuffix, matchedP, nextState)
           ()
-        } else {
-          ListUtils.lemmaConcatTwoListThenFirstIsPrefix(newPrefix, newSuffix)
-          assert(ListUtils.isPrefix(newPrefix, newPrefix ++ newSuffix))
-          assert(ListUtils.isPrefix(newPrefix, pastChars ++ suffix))
-
-          assert(findLongestMatchInner(dfa, from, pastChars, suffix)._1 == matchedP)
-          assert(pastChars.size == matchedP.size)
-          assert(pastChars == matchedP)
-          findLongestMatchFromItThenSameWithoutSuffixSame(dfa, pastChars ++ suffix, pastChars, suffix)
-          findLongestMatchFromItThenFromSmaller(dfa, pastChars, pastChars, Nil(), Nil(), pastChars)
-          // (pastChars, suffix)
-          ()
         }
-      } else {
-        // recursive
-        ListUtils.lemmaConcatTwoListThenFirstIsPrefix(newPrefix, newSuffix)
-        longestMatchIsAcceptedByMatchOrIsEmptyInner(dfa, newPrefix, newSuffix, matchedP, nextState)
-        ()
       }
     }
 
@@ -269,6 +312,12 @@ object VerifiedDFAMatcher {
       ListUtils.lemmaTwoListsConcatAssociativity(testedP, List(testedSuffix.head), newTestedS)
       ListUtils.lemmaConcatTwoListThenFirstIsPrefix(newTestedP, newTestedS)
       lemmaKnownAcceptedStringFromSmallerPrefixThenAtLeastThat(dfa, input, newTestedP, newTestedS, knownP)
+      if (moveMultipleSteps(dfa, dfa.startState, testedP) == dfa.errorState) {
+        lemmaMoveMultipleStepsFromStartIsEqualToMoveFromStateAfterPrefix(dfa, dfa.startState, newTestedP, testedP, List(testedSuffix.head))
+        lemmaNoTransitionsFromErrorStateThenFixPointMultipleSteps(dfa, List(testedSuffix.head))
+        lemmaFindLongestMatchReturnNilFromErrorState(dfa, newTestedP, newTestedS, input)
+        check(false)
+      }
     }
 
   } ensuring (findLongestMatchInner(dfa, moveMultipleSteps(dfa, dfa.startState, testedP), testedP, testedSuffix)._1.size >= knownP.size)
@@ -344,55 +393,64 @@ object VerifiedDFAMatcher {
       findLongestMatchFromItThenFromSmaller(dfa, input, longestM, suffix, newSmallerP, newSmallerPSuff)
       assert(findLongestMatchInner(dfa, moveMultipleSteps(dfa, dfa.startState, newSmallerP), newSmallerP, newSmallerPSuff)._1 == longestM)
 
-      // findLongestMatchInner(dfa, moveMultipleSteps(dfa, dfa.startState, smallerP), smallerP, smallerPSuffix) ==
-
       val from = moveMultipleSteps(dfa, dfa.startState, smallerP)
       if (smallerPSuffix.isEmpty) {
         check(false)
 
       } else {
 
-        val nextChar = smallerPSuffix.head
-
-        val newPrefix = smallerP ++ List(nextChar)
-        val newSuffix = smallerPSuffix.tail
-
-        assert(newPrefix == newSmallerP)
-        assert(newSmallerPSuff == newSuffix)
-
-        ListUtils.lemmaConcatTwoListThenFirstIsPrefix(smallerP, smallerPSuffix)
-        ListUtils.lemmaAddHeadSuffixToPrefixStillPrefix(smallerP, smallerP ++ smallerPSuffix)
-
-        ListUtils.lemmaTwoListsConcatAssociativity(smallerP, List(nextChar), newSuffix)
-        ListUtils.lemmaSubseqRefl(dfa.transitions)
-
-        val nextState = moveOneStep(dfa, dfa.transitions, from, nextChar)
-
-        lemmaMoveOneStepAfterMultipleIsSameAsMultipleWithNewChar(dfa, dfa.startState, smallerP, nextChar)
-
-        val recursive = findLongestMatchInner(dfa, nextState, newPrefix, newSuffix)
-
-        assert(recursive == findLongestMatchInner(dfa, moveMultipleSteps(dfa, dfa.startState, newSmallerP), newSmallerP, newSmallerPSuff))
-
-        assert(recursive._1.size > smallerP.size)
-        if (dfa.finalStates.contains(from)) {
-          if (recursive._1.size > smallerP.size) {
-            assert(findLongestMatchInner(dfa, moveMultipleSteps(dfa, dfa.startState, smallerP), smallerP, smallerPSuffix) == recursive)
-            // recursive
-          } else {
-            ListUtils.lemmaConcatTwoListThenFirstIsPrefix(newPrefix, newSuffix)
-            assert(ListUtils.isPrefix(newPrefix, newPrefix ++ newSuffix))
-            assert(ListUtils.isPrefix(newPrefix, smallerP ++ smallerPSuffix))
-            check(false)
-            // (smallerP, smallerPSuffix)
-          }
+        if (from == dfa.errorState) {
+          ListUtils.lemmaConcatTwoListThenFirstIsPrefix(smallerP, smallerPSuffix)
+          ListUtils.lemmaPrefixFromSameListAndStrictlySmallerThenPrefixFromEachOther(longestM, smallerP, input)
+          lemmaMoveMultipleStepsFromStartIsEqualToMoveFromStateAfterPrefix(dfa, dfa.startState, longestM, smallerP, ListUtils.getSuffix(longestM, smallerP))
+          lemmaNoTransitionsFromErrorStateThenFixPointMultipleSteps(dfa, ListUtils.getSuffix(longestM, smallerP))
+          lemmaFindLongestMatchReturnNilFromErrorState(dfa, longestM, suffix, input)
+          check(false)
+          ()
         } else {
-          // recursive
+
+          val nextChar = smallerPSuffix.head
+
+          val newPrefix = smallerP ++ List(nextChar)
+          val newSuffix = smallerPSuffix.tail
+
+          assert(newPrefix == newSmallerP)
+          assert(newSmallerPSuff == newSuffix)
+
+          ListUtils.lemmaConcatTwoListThenFirstIsPrefix(smallerP, smallerPSuffix)
+          ListUtils.lemmaAddHeadSuffixToPrefixStillPrefix(smallerP, smallerP ++ smallerPSuffix)
+
+          ListUtils.lemmaTwoListsConcatAssociativity(smallerP, List(nextChar), newSuffix)
+          ListUtils.lemmaSubseqRefl(dfa.transitions)
+
+          val nextState = moveOneStep(dfa, dfa.transitions, from, nextChar)
+
+          lemmaMoveOneStepAfterMultipleIsSameAsMultipleWithNewChar(dfa, dfa.startState, smallerP, nextChar)
+
+          val recursive = findLongestMatchInner(dfa, nextState, newPrefix, newSuffix)
+
+          assert(recursive == findLongestMatchInner(dfa, moveMultipleSteps(dfa, dfa.startState, newSmallerP), newSmallerP, newSmallerPSuff))
+
+          assert(recursive._1.size > smallerP.size)
+          if (dfa.finalStates.contains(from)) {
+            if (recursive._1.size > smallerP.size) {
+              assert(findLongestMatchInner(dfa, moveMultipleSteps(dfa, dfa.startState, smallerP), smallerP, smallerPSuffix) == recursive)
+              // recursive
+            } else {
+              ListUtils.lemmaConcatTwoListThenFirstIsPrefix(newPrefix, newSuffix)
+              assert(ListUtils.isPrefix(newPrefix, newPrefix ++ newSuffix))
+              assert(ListUtils.isPrefix(newPrefix, smallerP ++ smallerPSuffix))
+              check(false)
+              // (smallerP, smallerPSuffix)
+            }
+          } else {
+            // recursive
+          }
+          assert(findLongestMatchInner(dfa, moveMultipleSteps(dfa, dfa.startState, smallerP), smallerP, smallerPSuffix) == recursive)
         }
-        assert(findLongestMatchInner(dfa, moveMultipleSteps(dfa, dfa.startState, smallerP), smallerP, smallerPSuffix) == recursive)
+        assert(findLongestMatchInner(dfa, moveMultipleSteps(dfa, dfa.startState, smallerP), smallerP, smallerPSuffix)._1 == longestM)
+        ()
       }
-      assert(findLongestMatchInner(dfa, moveMultipleSteps(dfa, dfa.startState, smallerP), smallerP, smallerPSuffix)._1 == longestM) // TODO
-      ()
     }
 
   } ensuring (findLongestMatchInner(dfa, moveMultipleSteps(dfa, dfa.startState, smallerP), smallerP, smallerPSuffix)._1 == longestM)
@@ -435,6 +493,13 @@ object VerifiedDFAMatcher {
         val newSmallerPSuff = smallerPSuffix.tail
         ListUtils.lemmaTwoListsConcatAssociativity(smallerP, List(smallerPSuffix.head), newSmallerPSuff)
         lemmaFindLongestMatchStartFromStartSmallerPrefixThanResultSame(dfa, input, longestM, suffix, newSmallerP, newSmallerPSuff)
+
+        if (moveMultipleSteps(dfa, dfa.startState, smallerP) == dfa.errorState) {
+          lemmaMoveMultipleStepsFromStartIsEqualToMoveFromStateAfterPrefix(dfa, dfa.startState, newSmallerP, smallerP, List(smallerPSuffix.head))
+          lemmaNoTransitionsFromErrorStateThenFixPointMultipleSteps(dfa, List(smallerPSuffix.head))
+          lemmaFindLongestMatchReturnNilFromErrorState(dfa, newSmallerP, newSmallerPSuff, input)
+          check(false)
+        }
       }
     }
 
