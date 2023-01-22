@@ -22,28 +22,9 @@ object MainTest {
   import VerifiedFunLexer._
   @extern
   def main(args: Array[String]): Unit = {
-    // val rSep = ElementMatch(' ')
-    // val ruleSep = Rule(rSep, "sep", true)
-    // val sepToken = Token(List(' '), "sep", true)
-
-    // val rAb = Concat(Concat(ElementMatch('a'), ElementMatch('b')), Star(Concat(ElementMatch('a'), ElementMatch('b'))))
-    // val rule = Rule(rAb, "ab", false)
-
-    // val rC = Concat(ElementMatch('c'), Star(ElementMatch('c')))
-    // val ruleC = Rule(rC, "c", false)
-
-    // val t1 = Token(List('a', 'b'), "ab", false)
-    // val t2 = Token(List('c', 'c'), "c", false)
-
-    // val input: List[Token[Char]] = List(t1, t2, t1, t2, t1, t1)
-    // val rules = List(rule, ruleC, ruleSep)
-
-    // // Regex to NFA tests
-    // val state = State(BigInt(1))
-
-    // val output: List[Char] = Lexer.printWithSeparatorTokenWhenNeeded(rules, input, sepToken)
-    // println(output.foldLeft("")((s: String, c: Char) => s + c.toString))(state)
-    // // NFATests()(state)
+    // Regex to NFA tests
+    val state = State(BigInt(1))
+    NFATests()(state)
 
   }
   @extern
@@ -190,7 +171,7 @@ object VerifiedFunLexer {
       val ret: (List[Token[C]], List[C]) = maxPrefix(rules, input) match {
         case Some((token, suffix)) => {
           val (followingTokens, nextSuffix) = lex(rules, suffix)
-          assert(token.getCharacters ++ suffix == input)
+          assert(token.characters ++ suffix == input)
           (Cons(token, followingTokens), nextSuffix)
         }
         case None() => (Nil(), input)
@@ -207,7 +188,7 @@ object VerifiedFunLexer {
       */
     def print[C](l: List[Token[C]]): List[C] = {
       l match {
-        case Cons(hd, tl) => hd.getCharacters ++ print(tl)
+        case Cons(hd, tl) => hd.characters ++ print(tl)
         case Nil()        => Nil[C]()
       }
     }
@@ -220,7 +201,7 @@ object VerifiedFunLexer {
     def printWithSeparatorToken[C](l: List[Token[C]], separatorToken: Token[C]): List[C] = {
       require(separatorToken.isSeparator)
       l match {
-        case Cons(hd, tl) => hd.getCharacters ++ separatorToken.getCharacters ++ printWithSeparatorToken(tl, separatorToken)
+        case Cons(hd, tl) => hd.characters ++ separatorToken.characters ++ printWithSeparatorToken(tl, separatorToken)
         case Nil()        => Nil[C]()
       }
     }
@@ -242,12 +223,12 @@ object VerifiedFunLexer {
       l match {
         case Cons(hd, tl) => {
           val suffix = printWithSeparatorTokenWhenNeeded(rules, tl, separatorToken)
-          val maxPrefWithoutSep = maxPrefix(rules, hd.getCharacters ++ suffix)
+          val maxPrefWithoutSep = maxPrefix(rules, hd.characters ++ suffix)
           maxPrefWithoutSep match {
-            case Some((t, s)) if t == hd => hd.getCharacters ++ suffix
-            case Some((t, s)) if t != hd => hd.getCharacters ++ separatorToken.getCharacters ++ suffix
+            case Some((t, s)) if t == hd => hd.characters ++ suffix
+            case Some((t, s)) if t != hd => hd.characters ++ separatorToken.characters ++ suffix
             case None() => {
-              lemmaLexIsDefinedWithStrThenLexWithSuffixIsDefined(rules, hd.getCharacters, suffix)
+              lemmaLexIsDefinedWithStrThenLexWithSuffixIsDefined(rules, hd.characters, suffix)
               check(false)
               Nil[C]()
             }
@@ -278,16 +259,16 @@ object VerifiedFunLexer {
           val currentRulePref = maxPrefixOneRule(hd, input)
           val othersPrefix = maxPrefix(tl, input)
           (currentRulePref, othersPrefix) match {
-            case (None(), None())                                                         => None()
-            case (c, None())                                                              => c
-            case (None(), o)                                                              => o
-            case (Some(c), Some(o)) if c._1.getCharacters.size >= o._1.getCharacters.size => Some(c)
-            case (Some(c), Some(o)) if c._1.getCharacters.size < o._1.getCharacters.size  => Some(o)
+            case (None(), None())                                                   => None()
+            case (c, None())                                                        => c
+            case (None(), o)                                                        => o
+            case (Some(c), Some(o)) if c._1.characters.size >= o._1.characters.size => Some(c)
+            case (Some(c), Some(o)) if c._1.characters.size < o._1.characters.size  => Some(o)
           }
         }
       }
       ret
-    } ensuring (res => res.isEmpty || res.isDefined && (res.get._2.size < input.size && res.get._1.getCharacters ++ res.get._2 == input))
+    } ensuring (res => res.isEmpty || res.isDefined && (res.get._2.size < input.size && res.get._1.characters ++ res.get._2 == input))
 
     /** Finds the biggest prefix matching any rule in the input list of characters If nothing matched a rule, returns None Else, returns the matched prefix and the remaining suffix
       *
@@ -335,8 +316,8 @@ object VerifiedFunLexer {
       require(rules.contains(otherR))
       require(lex(rules, input) == (tokens, suffix))
 
-      require(tokens.isEmpty || tokens.head.getCharacters.size <= otherP.size)
-      require(tokens.isEmpty || tokens.head.getTag == r.tag)
+      require(tokens.isEmpty || tokens.head.characters.size <= otherP.size)
+      require(tokens.isEmpty || tokens.head.tag == r.tag)
       require(tokens.isEmpty || tokens.head.isSeparator == r.isSeparator)
       require(ListUtils.isPrefix(otherP, input))
       require(r != otherR)
@@ -356,14 +337,14 @@ object VerifiedFunLexer {
           case Cons(hd, tl) => {
             val (tok, suf) = maxPrefix(rules, input).get
             assert(hd == tok)
-            ListUtils.lemmaConcatTwoListThenFirstIsPrefix(hd.getCharacters, suf)
-            ListUtils.lemmaSamePrefixThenSameSuffix(hd.getCharacters, suf, hd.getCharacters, ListUtils.getSuffix(input, hd.getCharacters), input)
-            if (otherP.size == hd.getCharacters.size) {
-              ListUtils.lemmaIsPrefixSameLengthThenSameList(hd.getCharacters, otherP, input)
-              lemmaMaxPrefNoSmallerRuleMatches(rules, r, hd.getCharacters, input, otherR)
+            ListUtils.lemmaConcatTwoListThenFirstIsPrefix(hd.characters, suf)
+            ListUtils.lemmaSamePrefixThenSameSuffix(hd.characters, suf, hd.characters, ListUtils.getSuffix(input, hd.characters), input)
+            if (otherP.size == hd.characters.size) {
+              ListUtils.lemmaIsPrefixSameLengthThenSameList(hd.characters, otherP, input)
+              lemmaMaxPrefNoSmallerRuleMatches(rules, r, hd.characters, input, otherR)
             } else {
-              lemmaMaxPrefixTagSoFindMaxPrefOneRuleWithThisRule(rules, hd.getCharacters, input, suf, r)
-              lemmaMaxPrefixOutputsMaxPrefix(rules, r, hd.getCharacters, input, otherP, otherR)
+              lemmaMaxPrefixTagSoFindMaxPrefOneRuleWithThisRule(rules, hd.characters, input, suf, r)
+              lemmaMaxPrefixOutputsMaxPrefix(rules, r, hd.characters, input, otherP, otherR)
             }
           }
         }
@@ -380,11 +361,11 @@ object VerifiedFunLexer {
           }
           case Cons(hd, tl) => {
             val (tok, suf) = maxPrefix(rules, input).get
-            ListUtils.lemmaConcatTwoListThenFirstIsPrefix(hd.getCharacters, suf)
-            ListUtils.lemmaSamePrefixThenSameSuffix(hd.getCharacters, suf, hd.getCharacters, ListUtils.getSuffix(input, hd.getCharacters), input)
-            if (otherP.size > hd.getCharacters.size) {
-              lemmaMaxPrefixTagSoFindMaxPrefOneRuleWithThisRule(rules, hd.getCharacters, input, suf, r)
-              lemmaMaxPrefixOutputsMaxPrefix(rules, r, hd.getCharacters, input, otherP, otherR)
+            ListUtils.lemmaConcatTwoListThenFirstIsPrefix(hd.characters, suf)
+            ListUtils.lemmaSamePrefixThenSameSuffix(hd.characters, suf, hd.characters, ListUtils.getSuffix(input, hd.characters), input)
+            if (otherP.size > hd.characters.size) {
+              lemmaMaxPrefixTagSoFindMaxPrefOneRuleWithThisRule(rules, hd.characters, input, suf, r)
+              lemmaMaxPrefixOutputsMaxPrefix(rules, r, hd.characters, input, otherP, otherR)
             }
 
           }
@@ -404,36 +385,36 @@ object VerifiedFunLexer {
       require(separatorToken.isSeparator)
       require(tokens.forall(!_.isSeparator))
       require({
-        lemmaMaxPrefReturnTokenSoItsTagBelongsToARule(rules, separatorToken.getCharacters, separatorToken)
-        getRuleFromTag(rules, separatorToken.getTag).get.isSeparator
+        lemmaMaxPrefReturnTokenSoItsTagBelongsToARule(rules, separatorToken.characters, separatorToken)
+        getRuleFromTag(rules, separatorToken.tag).get.isSeparator
       })
 
       tokens match {
         case Cons(hd, tl) => {
           val input = printWithSeparatorTokenWhenNeeded(rules, tokens, separatorToken)
-          val suffixWithSep = separatorToken.getCharacters ++ printWithSeparatorTokenWhenNeeded(rules, tl, separatorToken)
-          ListUtils.lemmaTwoListsConcatAssociativity(hd.getCharacters, separatorToken.getCharacters, printWithSeparatorTokenWhenNeeded(rules, tl, separatorToken))
+          val suffixWithSep = separatorToken.characters ++ printWithSeparatorTokenWhenNeeded(rules, tl, separatorToken)
+          ListUtils.lemmaTwoListsConcatAssociativity(hd.characters, separatorToken.characters, printWithSeparatorTokenWhenNeeded(rules, tl, separatorToken))
           val suffixWithoutSep = printWithSeparatorTokenWhenNeeded(rules, tl, separatorToken)
-          assert(input == hd.getCharacters ++ suffixWithSep || input == hd.getCharacters ++ suffixWithoutSep)
+          assert(input == hd.characters ++ suffixWithSep || input == hd.characters ++ suffixWithoutSep)
 
-          if (input == hd.getCharacters ++ suffixWithSep) {
+          if (input == hd.characters ++ suffixWithSep) {
             val suffixAfterSep = printWithSeparatorTokenWhenNeeded(rules, tl, separatorToken)
             lemmaPrintWithSepTokenWhenNeededThenMaxPrefReturnsHead(rules, tokens, separatorToken)
-            ListUtils.lemmaConcatTwoListThenFirstIsPrefix(hd.getCharacters, suffixWithSep)
-            ListUtils.lemmaSamePrefixThenSameSuffix(hd.getCharacters, suffixWithSep, hd.getCharacters, maxPrefix(rules, input).get._2, input)
+            ListUtils.lemmaConcatTwoListThenFirstIsPrefix(hd.characters, suffixWithSep)
+            ListUtils.lemmaSamePrefixThenSameSuffix(hd.characters, suffixWithSep, hd.characters, maxPrefix(rules, input).get._2, input)
 
             val nextToken = tl.head
             val sepTokenOpt = maxPrefix(rules, suffixWithSep)
             if (tl.isEmpty) {
-              assert(input == hd.getCharacters ++ separatorToken.getCharacters)
+              assert(input == hd.characters ++ separatorToken.characters)
               check(false)
             }
             lemmaRulesProduceEachTokenIndividuallyThenForAnyToken(rules, tokens, nextToken)
             check(rulesProduceIndivualToken(rules, nextToken))
-            lemmaMaxPrefReturnTokenSoItsTagBelongsToARule(rules, separatorToken.getCharacters, separatorToken)
-            val separatorRule = getRuleFromTag(rules, separatorToken.getTag).get
-            lemmaMaxPrefReturnTokenSoItsTagBelongsToARule(rules, tl.head.getCharacters, nextToken)
-            val nextTokenRule = getRuleFromTag(rules, nextToken.getTag).get
+            lemmaMaxPrefReturnTokenSoItsTagBelongsToARule(rules, separatorToken.characters, separatorToken)
+            val separatorRule = getRuleFromTag(rules, separatorToken.tag).get
+            lemmaMaxPrefReturnTokenSoItsTagBelongsToARule(rules, tl.head.characters, nextToken)
+            val nextTokenRule = getRuleFromTag(rules, nextToken.tag).get
 
             // if (!usedCharacters(nextTokenRule.regex).contains(nextToken.getCharacters.head)) {
             //   lemmaRegexCannotMatchAStringContainingACharItDoesNotContain(nextTokenRule.regex, nextToken.getCharacters, nextToken.getCharacters.head)
@@ -449,8 +430,8 @@ object VerifiedFunLexer {
           } else {
             lemmaPrintWithSepTokenWhenNeededThenMaxPrefReturnsHead(rules, tokens, separatorToken)
             theoremInvertabilityFromTokensSepTokenWhenNeeded(rules, tl, separatorToken)
-            ListUtils.lemmaConcatTwoListThenFirstIsPrefix(hd.getCharacters, suffixWithoutSep)
-            ListUtils.lemmaSamePrefixThenSameSuffix(hd.getCharacters, suffixWithoutSep, hd.getCharacters, maxPrefix(rules, input).get._2, input)
+            ListUtils.lemmaConcatTwoListThenFirstIsPrefix(hd.characters, suffixWithoutSep)
+            ListUtils.lemmaSamePrefixThenSameSuffix(hd.characters, suffixWithoutSep, hd.characters, maxPrefix(rules, input).get._2, input)
           }
         }
         case Nil() => ()
@@ -476,10 +457,10 @@ object VerifiedFunLexer {
             theoremInvertFromString(rules, maxPrefix(rules, input).get._2)
             lemmaRemovingFirstTokensCharactersPreservesLexSuffix(rules, input, tokens, suffix)
 
-            assert(input == maxPrefix(rules, input).get._1.getCharacters ++ maxPrefix(rules, input).get._2)
-            assert(input == maxPrefix(rules, input).get._1.getCharacters ++ (print(tl) ++ suffix))
+            assert(input == maxPrefix(rules, input).get._1.characters ++ maxPrefix(rules, input).get._2)
+            assert(input == maxPrefix(rules, input).get._1.characters ++ (print(tl) ++ suffix))
             ListUtils.lemmaTwoListsConcatAssociativity(
-              maxPrefix(rules, input).get._1.getCharacters,
+              maxPrefix(rules, input).get._1.characters,
               print(tl),
               suffix
             )
@@ -518,14 +499,14 @@ object VerifiedFunLexer {
 
       tokens match {
         case Cons(hd, tl) => {
-          lemmaMaxPrefReturnTokenSoItsTagBelongsToARule(rules, separatorToken.getCharacters, separatorToken)
-          val separatorRule = getRuleFromTag(rules, separatorToken.getTag).get
+          lemmaMaxPrefReturnTokenSoItsTagBelongsToARule(rules, separatorToken.characters, separatorToken)
+          val separatorRule = getRuleFromTag(rules, separatorToken.tag).get
 
-          lemmaMaxPrefReturnTokenSoItsTagBelongsToARule(rules, hd.getCharacters, hd)
-          val rule = getRuleFromTag(rules, hd.getTag).get
+          lemmaMaxPrefReturnTokenSoItsTagBelongsToARule(rules, hd.characters, hd)
+          val rule = getRuleFromTag(rules, hd.tag).get
 
           val suffix = printWithSeparatorTokenWhenNeeded(rules, tl, separatorToken)
-          val maxPrefWithoutSep = maxPrefix(rules, hd.getCharacters ++ suffix)
+          val maxPrefWithoutSep = maxPrefix(rules, hd.characters ++ suffix)
           maxPrefWithoutSep match {
             case Some((t, s)) if t == hd => ()
             case Some((t, s)) if t != hd => {
@@ -536,12 +517,12 @@ object VerifiedFunLexer {
               //   check(false)
               // }
 
-              check(maxPrefix(rules, hd.getCharacters).isDefined)
-              check(maxPrefix(rules, hd.getCharacters).get._1 == hd)
+              check(maxPrefix(rules, hd.characters).isDefined)
+              check(maxPrefix(rules, hd.characters).get._1 == hd)
               lemmaMaxPrefWithOtherTypeUsedCharAtStartOfSuffixReturnSame(rules, hd, rule, resSuffix, separatorRule)
             }
             case None() => {
-              lemmaLexIsDefinedWithStrThenLexWithSuffixIsDefined(rules, hd.getCharacters, suffix)
+              lemmaLexIsDefinedWithStrThenLexWithSuffixIsDefined(rules, hd.characters, suffix)
               check(false)
             }
           }
@@ -560,10 +541,10 @@ object VerifiedFunLexer {
       require(rules.contains(rule))
       require(rules.contains(anOtherTypeRule))
       require(anOtherTypeRule.isSeparator != rule.isSeparator)
-      require(maxPrefix(rules, token.getCharacters).isDefined)
-      require(maxPrefix(rules, token.getCharacters).get._1 == token)
-      require(maxPrefix(rules, token.getCharacters).get._2.isEmpty)
-      require(token.getTag == rule.tag)
+      require(maxPrefix(rules, token.characters).isDefined)
+      require(maxPrefix(rules, token.characters).get._1 == token)
+      require(maxPrefix(rules, token.characters).get._2.isEmpty)
+      require(token.tag == rule.tag)
       require(token.isSeparator == rule.isSeparator)
       require({
         lemmaRuleInListAndRulesValidThenRuleIsValid(rule, rules)
@@ -571,10 +552,10 @@ object VerifiedFunLexer {
       })
       require(!suffix.isEmpty)
 
-      val input = token.getCharacters ++ suffix
-      ListUtils.lemmaConcatTwoListThenFirstIsPrefix(token.getCharacters, suffix)
+      val input = token.characters ++ suffix
+      ListUtils.lemmaConcatTwoListThenFirstIsPrefix(token.characters, suffix)
       val tokenOpt = maxPrefix(rules, input)
-      lemmaLexIsDefinedWithStrThenLexWithSuffixIsDefined(rules, token.getCharacters, suffix)
+      lemmaLexIsDefinedWithStrThenLexWithSuffixIsDefined(rules, token.characters, suffix)
       val foundToken = tokenOpt.get._1
       val foundSuffix = tokenOpt.get._2
       lemmaMaxPrefReturnTokenSoItsTagBelongsToARule(rules, input, foundToken)
@@ -585,10 +566,10 @@ object VerifiedFunLexer {
       assert(matchNFA(foundRule.nfa, foundToken.getCharacters))
       assert(foundRule.isSeparator == foundToken.isSeparator)
 
-      lemmaMaxPrefixTagSoFindMaxPrefOneRuleWithThisRule(rules, foundToken.getCharacters, input, foundSuffix, foundRule)
-      ListUtils.lemmaSamePrefixThenSameSuffix(foundToken.getCharacters, foundSuffix, foundToken.getCharacters, ListUtils.getSuffix(input, foundToken.getCharacters), input)
-      assert(ListUtils.getSuffix(input, foundToken.getCharacters) == foundSuffix)
-      assert(maxPrefixOneRule(foundRule, input) == Some((foundToken, ListUtils.getSuffix(input, foundToken.getCharacters))))
+      lemmaMaxPrefixTagSoFindMaxPrefOneRuleWithThisRule(rules, foundToken.characters, input, foundSuffix, foundRule)
+      ListUtils.lemmaSamePrefixThenSameSuffix(foundToken.characters, foundSuffix, foundToken.characters, ListUtils.getSuffix(input, foundToken.characters), input)
+      assert(ListUtils.getSuffix(input, foundToken.characters) == foundSuffix)
+      assert(maxPrefixOneRule(foundRule, input) == Some((foundToken, ListUtils.getSuffix(input, foundToken.characters))))
 
       // if (!usedCharacters(rule.regex).contains(foundToken.getCharacters.head)) {
       //   lemmaRegexCannotMatchAStringContainingACharItDoesNotContain(rule.regex, token.getCharacters, foundToken.getCharacters.head)
@@ -628,36 +609,36 @@ object VerifiedFunLexer {
         lemmaMaxPrefixOutputsMaxPrefix(rules, foundRule, foundToken.getCharacters, input, token.getCharacters, rule)
         check(false)
       }
-      ListUtils.lemmaIsPrefixSameLengthThenSameList(foundToken.getCharacters, token.getCharacters, input)
+      ListUtils.lemmaIsPrefixSameLengthThenSameList(foundToken.characters, token.characters, input)
 
-      assert(foundToken.getCharacters == token.getCharacters)
+      assert(foundToken.characters == token.characters)
 
-      if (foundToken.getTag != token.getTag) {
+      if (foundToken.tag != token.tag) {
         assert(foundRule != rule)
         val foundRuleIndex = ListUtils.getIndex(rules, foundRule)
         val ruleIndex = ListUtils.getIndex(rules, rule)
         if (foundRuleIndex < ruleIndex) {
-          ListUtils.lemmaGetSuffixOnListWithItSelfIsEmpty(token.getCharacters)
-          assert(ListUtils.getSuffix(token.getCharacters, token.getCharacters).isEmpty)
-          lemmaMaxPrefNoSmallerRuleMatches(rules, rule, token.getCharacters, token.getCharacters, foundRule)
+          ListUtils.lemmaGetSuffixOnListWithItSelfIsEmpty(token.characters)
+          assert(ListUtils.getSuffix(token.characters, token.characters).isEmpty)
+          lemmaMaxPrefNoSmallerRuleMatches(rules, rule, token.characters, token.characters, foundRule)
           check(false)
         }
         if (ruleIndex < foundRuleIndex) {
-          lemmaMaxPrefNoSmallerRuleMatches(rules, foundRule, token.getCharacters, input, rule)
+          lemmaMaxPrefNoSmallerRuleMatches(rules, foundRule, token.characters, input, rule)
           check(false)
         }
 
         ListUtils.lemmaSameIndexThenSameElement(rules, foundRule, rule)
         check(false)
       }
-      assert(foundToken.getTag == token.getTag)
-      assert(foundToken.getTag == rule.tag)
+      assert(foundToken.tag == token.tag)
+      assert(foundToken.tag == rule.tag)
 
-      lemmaMaxPrefixTagSoFindMaxPrefOneRuleWithThisRule(rules, token.getCharacters, input, ListUtils.getSuffix(input, token.getCharacters), rule)
-      ListUtils.lemmaSamePrefixThenSameSuffix(token.getCharacters, ListUtils.getSuffix(input, token.getCharacters), foundToken.getCharacters, foundSuffix, input)
-      ListUtils.lemmaSamePrefixThenSameSuffix(token.getCharacters, suffix, foundToken.getCharacters, foundSuffix, input)
+      lemmaMaxPrefixTagSoFindMaxPrefOneRuleWithThisRule(rules, token.characters, input, ListUtils.getSuffix(input, token.characters), rule)
+      ListUtils.lemmaSamePrefixThenSameSuffix(token.characters, ListUtils.getSuffix(input, token.characters), foundToken.characters, foundSuffix, input)
+      ListUtils.lemmaSamePrefixThenSameSuffix(token.characters, suffix, foundToken.characters, foundSuffix, input)
 
-    } ensuring (maxPrefix(rules, token.getCharacters ++ suffix) == Some((token, suffix)))
+    } ensuring (maxPrefix(rules, token.characters ++ suffix) == Some((token, suffix)))
 
     def lemmaLexIsDefinedWithStrThenLexWithSuffixIsDefined[C](rules: List[Rule[C]], input: List[C], suffix: List[C]): Unit = {
       require(!rules.isEmpty)
@@ -666,15 +647,15 @@ object VerifiedFunLexer {
 
       val (tokens, _) = lex(rules, input)
       val firstT = tokens.head
-      ListUtils.lemmaConcatTwoListThenFirstIsPrefix(firstT.getCharacters, maxPrefix(rules, input).get._2)
-      ListUtils.lemmaPrefixStaysPrefixWhenAddingToSuffix(firstT.getCharacters, input, suffix)
+      ListUtils.lemmaConcatTwoListThenFirstIsPrefix(firstT.characters, maxPrefix(rules, input).get._2)
+      ListUtils.lemmaPrefixStaysPrefixWhenAddingToSuffix(firstT.characters, input, suffix)
       lemmaMaxPrefReturnTokenSoItsTagBelongsToARule(rules, input, firstT)
       val rule: Rule[C] = getRuleFromTag(rules, firstT.getTag).get
       assert(matchNFA(rule.nfa, firstT.getCharacters))
 
       if (maxPrefix(rules, input ++ suffix).isEmpty) {
         lemmaMaxPrefixReturnsNoneThenAnyRuleReturnsNone(rule, rules, input ++ suffix)
-        lemmaMaxPrefOneRuleReturnsNoneThenNoPrefMaxRegex(rule, firstT.getCharacters, input ++ suffix)
+        lemmaMaxPrefOneRuleReturnsNoneThenNoPrefMaxRegex(rule, firstT.characters, input ++ suffix)
         check(false)
       }
 
@@ -694,7 +675,7 @@ object VerifiedFunLexer {
             if (!tl.isEmpty) {
               lemmaInvariantOnRulesThenOnTail(hd, tl)
               lemmaMaxPrefReturnTokenSoItsTagBelongsToARule(tl, input, token)
-              lemmaGetRuleFromTagInListThenSameListWhenAddingARuleDiffTag(tl, hd, token.getTag)
+              lemmaGetRuleFromTagInListThenSameListWhenAddingARuleDiffTag(tl, hd, token.tag)
             } else {
               check(false)
             }
@@ -774,15 +755,15 @@ object VerifiedFunLexer {
             lemmaMaxPrefOneRuleReturnsNoneThenNoPrefMaxRegex(rBis, p, input)
           } else {
             val (token, suff) = tokenSuffOpt.get
-            if (token.getCharacters.size > p.size) {
+            if (token.characters.size > p.size) {
               lemmaRuleReturnsPrefixSmallerEqualThanGlobalMaxPref(
                 rules,
                 p,
                 Token(p, r.tag, r.isSeparator),
                 input,
                 ListUtils.getSuffix(input, p),
-                token.getCharacters,
-                ListUtils.getSuffix(input, token.getCharacters),
+                token.characters,
+                ListUtils.getSuffix(input, token.characters),
                 rBis,
                 token
               )
@@ -905,8 +886,8 @@ object VerifiedFunLexer {
       } else {
         val tBis = bisTokenSuff.get._1
         val suffixBis = bisTokenSuff.get._2
-        ListUtils.lemmaConcatTwoListThenFirstIsPrefix(tBis.getCharacters, suffixBis)
-        if (tBis.getCharacters == pBis) {
+        ListUtils.lemmaConcatTwoListThenFirstIsPrefix(tBis.characters, suffixBis)
+        if (tBis.characters == pBis) {
           lemmaRuleReturnsPrefixSmallerEqualThanGlobalMaxPref(
             rules,
             p,
@@ -925,23 +906,23 @@ object VerifiedFunLexer {
             lemmaMaxPrefixOneRuleOutputsMaxPrefix(rBis, tBis.getCharacters, tBis, input, suffixBis, pBis)
             check(!matchNFA(rBis.nfa, pBis))
           } else {
-            if (pBis.size == tBis.getCharacters.size) {
-              ListUtils.lemmaIsPrefixSameLengthThenSameList(pBis, tBis.getCharacters, input)
+            if (pBis.size == tBis.characters.size) {
+              ListUtils.lemmaIsPrefixSameLengthThenSameList(pBis, tBis.characters, input)
               check(false)
             }
-            assert(pBis.size < tBis.getCharacters.size)
+            assert(pBis.size < tBis.characters.size)
             lemmaRuleReturnsPrefixSmallerEqualThanGlobalMaxPref(
               rules,
               p,
               Token(p, r.tag, r.isSeparator),
               input,
               ListUtils.getSuffix(input, p),
-              tBis.getCharacters,
+              tBis.characters,
               suffixBis,
               rBis,
               tBis
             )
-            assert(tBis.getCharacters.size <= p.size)
+            assert(tBis.characters.size <= p.size)
             check(false)
             check(!matchNFA(rBis.nfa, pBis))
 
@@ -977,7 +958,7 @@ object VerifiedFunLexer {
             check(maxPrefixOneRule(r, input) == Some(Token(p, r.tag, r.isSeparator), suffix))
           } else {
             lemmaNoDuplTagThenTailRulesCannotProduceHeadTagInTok(hd, tl, input)
-            assert(maxPrefix(tl, input).isEmpty || maxPrefix(tl, input).get._1.getTag != r.tag)
+            assert(maxPrefix(tl, input).isEmpty || maxPrefix(tl, input).get._1.tag != r.tag)
             check(maxPrefixOneRule(r, input) == Some(Token(p, r.tag, r.isSeparator), suffix))
           }
         }
@@ -987,13 +968,13 @@ object VerifiedFunLexer {
           if (otherTokSufOpt.isEmpty) {
             lemmaMaxPrefixTagSoFindMaxPrefOneRuleWithThisRule(tl, p, input, suffix, r)
           } else {
-            assert(otherTokSufOpt.get._1.getTag == hd.tag)
-            if (otherTokSufOpt.get._1.getTag == r.tag) {
+            assert(otherTokSufOpt.get._1.tag == hd.tag)
+            if (otherTokSufOpt.get._1.tag == r.tag) {
               assert(hd.tag == r.tag)
               lemmaNoDuplicateTagAndDiffIndexThenNoTwoRulesTagsEq(rules, hd, r)
               check(false)
             } else {
-              assert(otherTokSufOpt.get._1.getTag != r.tag)
+              assert(otherTokSufOpt.get._1.tag != r.tag)
               assert(maxPrefixOneRule(hd, input) != Some(Token(p, r.tag, r.isSeparator), suffix))
               assert(maxPrefix(tl, input) == Some(Token(p, r.tag, r.isSeparator), suffix))
               lemmaMaxPrefixTagSoFindMaxPrefOneRuleWithThisRule(tl, p, input, suffix, r)
@@ -1024,7 +1005,7 @@ object VerifiedFunLexer {
         case Nil() => check(false)
       }
 
-    } ensuring (maxPrefix(rTail, input).isEmpty || maxPrefix(rTail, input).get._1.getTag != rHead.tag)
+    } ensuring (maxPrefix(rTail, input).isEmpty || maxPrefix(rTail, input).get._1.tag != rHead.tag)
 
     def lemmaRuleReturnsPrefixSmallerEqualThanGlobalMaxPref[C](
         rules: List[Rule[C]],
@@ -1050,8 +1031,8 @@ object VerifiedFunLexer {
         ListUtils.lemmaIsPrefixRefl(input, input)
         maxPrefixOneRule(rBis, input) == Some(tBis, suffixBis)
       })
-      require(tBis.getTag == rBis.tag)
-      require(tBis.getCharacters == pBis)
+      require(tBis.tag == rBis.tag)
+      require(tBis.characters == pBis)
       require(pBis ++ suffixBis == input)
 
       rules match {
@@ -1067,7 +1048,7 @@ object VerifiedFunLexer {
                 check(false)
               }
               val tokSuff = othersPrefix.get
-              val oPref = tokSuff._1.getCharacters
+              val oPref = tokSuff._1.characters
               val suff = tokSuff._2
               ListUtils.lemmaConcatTwoListThenFirstIsPrefix(oPref, suff)
               lemmaInvariantOnRulesThenOnTail(hd, tl)
