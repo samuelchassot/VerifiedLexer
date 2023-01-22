@@ -11,14 +11,10 @@ import scala.collection.immutable.Range.BigInt.apply
 
 object MainTest {
   import VerifiedFunLexer._
-  // import ComputableLanguage._
   import RegularExpression._
   import VerifiedRegexMatcher._
-  import VerifiedNFAMatcher._
-  import VerifiedNFA._
   import stainless.io.StdOut.println
   import stainless.io.State
-  // import VerifiedNFA._
   import VerifiedFunLexer._
   @extern
   def main(args: Array[String]): Unit = {
@@ -43,80 +39,7 @@ object MainTest {
 
     val output: List[Char] = Lexer.printWithSeparatorTokenWhenNeeded(rules, input, sepToken)
     println(output.foldLeft("")((s: String, c: Char) => s + c.toString))(state)
-    // NFATests()(state)
 
-  }
-  @extern
-  def NFATests()(implicit @ghost state: State): Unit = {
-
-    def testNfaMatch(testValues: List[List[Char]], r: Regex[Char])(implicit @ghost state: State): Boolean = {
-      def testOneValue(v: List[Char], r: Regex[Char])(implicit @ghost state: State): Boolean = {
-        println("testing string: " + v)
-        val longestMatchRegex1 = VerifiedRegexMatcher.findLongestMatch(r, v)
-        val longestMatchNfa1 = VerifiedNFAMatcher.findLongestMatch(fromRegexToNfa(r), v)
-        println("matched against regex: " + longestMatchRegex1)
-        println("matched against nfa: " + longestMatchNfa1)
-        val result = (longestMatchRegex1 == longestMatchNfa1)
-        println("equal = " + result.toString)
-        result
-      }
-      testValues match {
-        case Cons(hd, tl) => testOneValue(hd, r) && testNfaMatch(tl, r)
-        case Nil()        => true
-      }
-    }
-    val r1 = Star(Union(Star(Concat(ElementMatch('a'), ElementMatch('b'))), Concat(ElementMatch('c'), Concat(ElementMatch('d'), ElementMatch('e')))))
-    println(fromRegexToNfa(r1))
-    val stringList1 = List(
-      List('a', 'b', 'a', 'b'),
-      List('a', 'b', 'a', 'b', 'c', 'd', 'e', 'c', 'd', 'e', 'c', 'd', 'e', 'a', 'b', 'a', 'b'),
-      List('a', 'b', 'a', 'b', 'c', 'd', 'e', 'c', 'd', 'e', 'c', 'd', 'e', 'a', 'b', 'a', 'b', 'g', 'g', 'g'),
-      List('a', 'b', 'a', 'b', 'c', 'd', 'e', 'c', 'd', 'e', 'c', 'd', 'e', 'a', 'b', 'a', 'b', 'a'),
-      List('c', 'd', 'e', 'c', 'd', 'e'),
-      List[Char](),
-      List('a', 'b', 'a', 'b', 'a'),
-      List('a', 'b', 'c', 'd', 'e'),
-      List('a', 'c', 'd', 'b'),
-      List('a', 'b', 'c', 'd', 'e', 'a', 'a', 'a', 'c', 'd', 'e')
-    )
-
-    val testResult1 = testNfaMatch(stringList1, r1)
-
-    val r2 = Star(
-      Union(
-        Star(
-          Union(Concat(ElementMatch('a'), ElementMatch('b')), ElementMatch('f'))
-        ),
-        Concat(ElementMatch('c'), Concat(ElementMatch('d'), ElementMatch('e')))
-      )
-    )
-    println(fromRegexToNfa(r2))
-    val stringList2 = List(
-      List('a', 'b', 'a', 'b'),
-      List('a', 'b', 'a', 'b', 'c', 'd', 'e', 'c', 'd', 'e', 'c', 'd', 'e', 'a', 'b', 'a', 'b'),
-      List('a', 'b', 'a', 'b', 'c', 'd', 'e', 'c', 'd', 'e', 'c', 'd', 'e', 'a', 'b', 'a', 'b', 'g', 'g', 'g'),
-      List('a', 'b', 'a', 'b', 'c', 'd', 'e', 'c', 'd', 'e', 'c', 'd', 'e', 'a', 'b', 'a', 'b', 'a'),
-      List('c', 'd', 'e', 'c', 'd', 'e'),
-      List[Char](),
-      List('a', 'b', 'a', 'b', 'a'),
-      List('a', 'b', 'c', 'd', 'e'),
-      List('a', 'c', 'd', 'b'),
-      List('a', 'b', 'c', 'd', 'e', 'a', 'a', 'a', 'c', 'd', 'e'),
-      List('a', 'b', 'a', 'b'),
-      List('a', 'b', 'a', 'b', 'f', 'f', 'c', 'd', 'e', 'c', 'd', 'e', 'c', 'd', 'e', 'a', 'b', 'a', 'b'),
-      List('a', 'b', 'a', 'b', 'c', 'd', 'e', 'c', 'd', 'e', 'c', 'd', 'e', 'a', 'b', 'a', 'b', 'g', 'g', 'g', 'f', 'f'),
-      List('f', 'f', 'a', 'b', 'a', 'b', 'c', 'd', 'e', 'c', 'd', 'e', 'c', 'd', 'e', 'a', 'b', 'a', 'b', 'a'),
-      List('f', 'f', 'c', 'd', 'e', 'c', 'd', 'e'),
-      List('a', 'b', 'a', 'b', 'a', 'f', 'f'),
-      List('a', 'b', 'c', 'd', 'e', 'f'),
-      List('a', 'c', 'f', 'f', 'd', 'b'),
-      List('a', 'b', 'f', 'a', 'b', 'f', 'c', 'd', 'e', 'a', 'a', 'a', 'c', 'd', 'e')
-    )
-
-    val testResult2 = testNfaMatch(stringList2, r2)
-
-    println("TESTS RESULT 1 = " + testResult1.toString)
-    println("TESTS RESULT 2 = " + testResult2.toString)
   }
 
 }
