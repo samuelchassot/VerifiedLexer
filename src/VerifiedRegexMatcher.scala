@@ -9,7 +9,7 @@ import stainless.proof._
 import scala.runtime.Statics
 
 object RegularExpression {
-  abstract sealed class Regex[C] {}
+  abstract sealed class Regex[C]
   def validRegex[C](r: Regex[C]): Boolean = r match {
     case ElementMatch(c)    => true
     case Star(r)            => validRegex(r)
