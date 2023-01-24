@@ -40,7 +40,7 @@ object MainTest {
         Transition(VerifiedDFA.State(2), 'a', VerifiedDFA.State(1))
       )
     )
-    val ruleAB = Rule(dfaAb, "ab", false)
+    val ruleAb = Rule(dfaAb, "ab", false)
 
     // DFA which recognises any repetition of at least one "c" string
     val dfaC = DFA(
@@ -51,7 +51,7 @@ object MainTest {
     )
     val ruleC = Rule(dfaC, "c", false)
 
-    val rules = List(ruleAB, ruleC, ruleSep)
+    val rules = List(ruleAb, ruleC, ruleSep)
 
     // Tokens -> Characters -> Tokens
     val t1 = Token(List('a', 'b'), "ab", false)
