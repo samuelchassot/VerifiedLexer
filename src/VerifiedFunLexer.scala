@@ -18,27 +18,52 @@ object MainTest {
   import VerifiedFunLexer._
   @extern
   def main(args: Array[String]): Unit = {
-    val rSep = ElementMatch(' ')
-    val ruleSep = Rule(rSep, "sep", true)
+
+    val regexSep = Concat(ElementMatch(' '), Star(ElementMatch(' ')))
+    val ruleSep = Rule(regexSep, "sep", true)
     val sepToken = Token(List(' '), "sep", true)
 
-    val rAb = Concat(Concat(ElementMatch('a'), ElementMatch('b')), Star(Concat(ElementMatch('a'), ElementMatch('b'))))
-    val rule = Rule(rAb, "ab", false)
+    // DFA which recognises any repetition of at least one "ab" string
+    val regexAb = Concat(Concat(ElementMatch('a'), ElementMatch('b')), Star(Concat(ElementMatch('a'), ElementMatch('b'))))
+    val ruleAb = Rule(regexAb, "ab", false)
 
-    val rC = Concat(ElementMatch('c'), Star(ElementMatch('c')))
-    val ruleC = Rule(rC, "c", false)
+    // DFA which recognises any repetition of at least one "c" string
+    val regexC = Concat(ElementMatch('c'), Star(ElementMatch('c')))
+    val ruleC = Rule(regexC, "c", false)
 
+    val rules = List(ruleAb, ruleC, ruleSep)
+
+    // Tokens -> Characters -> Tokens
     val t1 = Token(List('a', 'b'), "ab", false)
     val t2 = Token(List('c', 'c'), "c", false)
-
     val input: List[Token[Char]] = List(t1, t2, t1, t2, t1, t1)
-    val rules = List(rule, ruleC, ruleSep)
 
-    // Regex to NFA tests
     val state = State(BigInt(1))
 
     val output: List[Char] = Lexer.printWithSeparatorTokenWhenNeeded(rules, input, sepToken)
-    println(output.foldLeft("")((s: String, c: Char) => s + c.toString))(state)
+
+    val lexed = Lexer.lex(rules, output)
+
+    println("Token list input:")(state)
+    println(input.foldLeft("")((s: String, t: Token[Char]) => s + t.toString + "\n"))(state)
+
+    println("Token list printed when separator token when needed: " + output.foldLeft("")((s: String, c: Char) => s + c.toString))(state)
+
+    println("After lexing again:")(state)
+    println(lexed._1.foldLeft("")((s: String, t: Token[Char]) => s + t.toString + "\n"))(state)
+
+    println("tokens -> print -> tokens modulo separator tokens equality: " + (lexed._1.filter(!_.isSeparator) == input))(state)
+    println("--------------------------------------------------------------------------------")(state)
+
+    // Characters -> Tokens -> Characters
+    val inputChar = List('a', 'b', 'c', 'a', 'b', 'a', 'b', 'c', 'c')
+    val tokenised = Lexer.lex(rules, inputChar)
+
+    println("Input string is: " + inputChar.foldLeft("")((s: String, c: Char) => s + c.toString))(state)
+    println("Resulting list of tokens: " + tokenised._1.foldLeft("")((s: String, t: Token[Char]) => s + t.characters.foldLeft("")((s: String, c: Char) => s + c.toString) + " "))(
+      state
+    )
+    println("Non-tokenised suffix: " + tokenised._2.foldLeft("")((s: String, c: Char) => s + c.toString))(state)
 
   }
 
