@@ -18,6 +18,8 @@ object MainTest {
   import VerifiedFunLexer._
   @extern
   def main(args: Array[String]): Unit = {
+
+    // DFA which recognises any repetition of at least one " " string
     val dfaSep = DFA(
       VerifiedDFA.State(0),
       List(VerifiedDFA.State(1)),
@@ -27,6 +29,7 @@ object MainTest {
     val ruleSep = Rule(dfaSep, "sep", true)
     val sepToken = Token(List(' '), "sep", true)
 
+    // DFA which recognises any repetition of at least one "ab" string
     val dfaAb = DFA(
       VerifiedDFA.State(0),
       List(VerifiedDFA.State(2)),
@@ -37,8 +40,9 @@ object MainTest {
         Transition(VerifiedDFA.State(2), 'a', VerifiedDFA.State(1))
       )
     )
-    val rule = Rule(dfaAb, "ab", false)
+    val ruleAB = Rule(dfaAb, "ab", false)
 
+    // DFA which recognises any repetition of at least one "c" string
     val dfaC = DFA(
       VerifiedDFA.State(0),
       List(VerifiedDFA.State(1)),
@@ -47,11 +51,12 @@ object MainTest {
     )
     val ruleC = Rule(dfaC, "c", false)
 
+    val rules = List(ruleAB, ruleC, ruleSep)
+
+    // Tokens -> Characters -> Tokens
     val t1 = Token(List('a', 'b'), "ab", false)
     val t2 = Token(List('c', 'c'), "c", false)
-
     val input: List[Token[Char]] = List(t1, t2, t1, t2, t1, t1)
-    val rules = List(rule, ruleC, ruleSep)
 
     val state = State(BigInt(1))
 
@@ -68,49 +73,19 @@ object MainTest {
     println(lexed._1.foldLeft("")((s: String, t: Token[Char]) => s + t.toString + "\n"))(state)
 
     println("tokens -> print -> tokens modulo separator tokens equality: " + (lexed._1.filter(!_.isSeparator) == input))(state)
-    // DFATests()(state)
+    println("--------------------------------------------------------------------------------")(state)
+
+    // Characters -> Tokens -> Characters
+    val inputChar = List('a', 'b', 'c', 'a', 'b', 'a', 'b', 'c', 'c')
+    val tokenised = Lexer.lex(rules, inputChar)
+
+    println("Input string is: " + inputChar.foldLeft("")((s: String, c: Char) => s + c.toString))(state)
+    println("Resulting list of tokens: " + tokenised._1.foldLeft("")((s: String, t: Token[Char]) => s + t.characters.foldLeft("")((s: String, c: Char) => s + c.toString) + " "))(
+      state
+    )
+    println("Non-tokenised suffix: " + tokenised._2.foldLeft("")((s: String, c: Char) => s + c.toString))(state)
 
   }
-
-  @extern
-  def DFATests()(implicit @ghost state: State): Unit = {
-
-    val startState = VerifiedDFA.State(0)
-    val finalState = VerifiedDFA.State(5)
-    val errState = VerifiedDFA.State(6)
-    val transitions = List(
-      Transition(startState, 'w', VerifiedDFA.State(1)),
-      Transition(VerifiedDFA.State(1), 'h', VerifiedDFA.State(2)),
-      Transition(VerifiedDFA.State(2), 'i', VerifiedDFA.State(3)),
-      Transition(VerifiedDFA.State(3), 'l', VerifiedDFA.State(4)),
-      Transition(VerifiedDFA.State(4), 'e', finalState)
-    )
-    val dfaWhile: DFA[Char] = DFA(startState, List(finalState), errState, transitions)
-    val s1 = List('w', 'h', 'i', 'l', 'e')
-    val s2 = List('w', 'h', 'i', 'l', 'e', 'w', 'h', 'i', 'l', 'e')
-    val s3 = List('w', 'h', 'i', 'l')
-    println("dfaWhile match s1: " + matchDFA(dfaWhile, s1).toString)
-    println("dfaWhile longestmatch with s1: " + VerifiedDFAMatcher.findLongestMatch(dfaWhile, s1).toString)
-    println("dfaWhile longestmatch with s2: " + VerifiedDFAMatcher.findLongestMatch(dfaWhile, s2).toString)
-    println("dfaWhile longestmatch with s3: " + VerifiedDFAMatcher.findLongestMatch(dfaWhile, s3).toString)
-
-    val startStateSpace = VerifiedDFA.State(0)
-    val finalStateSpace = VerifiedDFA.State(5)
-    val errStateSpace = VerifiedDFA.State(6)
-    val transitionsSpace = List(
-      Transition(startState, ' ', finalStateSpace),
-      Transition(finalStateSpace, ' ', finalStateSpace)
-    )
-    val dfaAllSpaces: DFA[Char] = DFA(startState, List(finalState), errStateSpace, transitionsSpace)
-    val s4 = List(' ', ' ', ' ')
-    val s5 = List(' ', ' ', ' ', ' ', ' ', ' ')
-    val s6 = List(' ', ' ', ' ', 'w', 'h', 'i', 'l')
-    println("dfaAllSpaces match s4: " + matchDFA(dfaAllSpaces, s4).toString)
-    println("dfaAllSpaces longestmatch with s4: " + VerifiedDFAMatcher.findLongestMatch(dfaAllSpaces, s4).toString)
-    println("dfaAllSpaces longestmatch with s5: " + VerifiedDFAMatcher.findLongestMatch(dfaAllSpaces, s5).toString)
-    println("dfaAllSpaces longestmatch with s6: " + VerifiedDFAMatcher.findLongestMatch(dfaAllSpaces, s6).toString)
-  }
-
 }
 object VerifiedFunLexer {
   import VerifiedDFA._
