@@ -9,7 +9,7 @@ import stainless.proof.check
 import scala.annotation.tailrec
 import scala.collection.immutable.Range.BigInt.apply
 
-object MainTest {
+object Main {
   import VerifiedFunLexer._
   import VerifiedDFAMatcher._
   import VerifiedDFA._
@@ -84,7 +84,6 @@ object MainTest {
       state
     )
     println("Non-tokenised suffix: " + tokenised._2.foldLeft("")((s: String, c: Char) => s + c.toString))(state)
-
   }
 }
 object VerifiedFunLexer {
