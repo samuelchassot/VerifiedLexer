@@ -1,1 +1,1 @@
-stainless-dotty ListUtils.scala VerifiedDFA.scala VerifiedFunLexer.scala --config-file=stainless.conf -Dparallel=3
+stainless-dotty ListUtils.scala VerifiedDFA.scala VerifiedLexer.scala --config-file=stainless.conf -Dparallel=3

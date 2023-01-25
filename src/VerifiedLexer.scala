@@ -10,12 +10,12 @@ import scala.annotation.tailrec
 import scala.collection.immutable.Range.BigInt.apply
 
 object Main {
-  import VerifiedFunLexer._
+  import VerifiedLexer._
   import VerifiedDFAMatcher._
   import VerifiedDFA._
   import stainless.io.StdOut.println
   import stainless.io.State
-  import VerifiedFunLexer._
+  import VerifiedLexer._
   @extern
   def main(args: Array[String]): Unit = {
 
@@ -86,7 +86,7 @@ object Main {
     println("Non-tokenised suffix: " + tokenised._2.foldLeft("")((s: String, c: Char) => s + c.toString))(state)
   }
 }
-object VerifiedFunLexer {
+object VerifiedLexer {
   import VerifiedDFA._
   import VerifiedDFAMatcher._
 
