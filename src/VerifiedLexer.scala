@@ -10,12 +10,12 @@ import scala.annotation.tailrec
 import scala.collection.immutable.Range.BigInt.apply
 
 object Main {
-  import VerifiedFunLexer._
-  import RegularExpression._
+  import VerifiedLexer._
+  import VerifiedRegex._
   import VerifiedRegexMatcher._
   import stainless.io.StdOut.println
   import stainless.io.State
-  import VerifiedFunLexer._
+  import VerifiedLexer._
   @extern
   def main(args: Array[String]): Unit = {
 
@@ -67,8 +67,8 @@ object Main {
   }
 
 }
-object VerifiedFunLexer {
-  import RegularExpression._
+object VerifiedLexer {
+  import VerifiedRegex._
   import VerifiedRegexMatcher._
 
   case class Token[C](characters: List[C], tag: String, isSeparator: Boolean)

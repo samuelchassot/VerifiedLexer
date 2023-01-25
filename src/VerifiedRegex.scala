@@ -8,7 +8,7 @@ import stainless.annotation._
 import stainless.proof._
 import scala.runtime.Statics
 
-object RegularExpression {
+object VerifiedRegex {
   abstract sealed class Regex[C]
   def validRegex[C](r: Regex[C]): Boolean = r match {
     case ElementMatch(c)    => true
@@ -43,7 +43,7 @@ object RegularExpression {
 }
 
 object VerifiedRegexMatcher {
-  import RegularExpression._
+  import VerifiedRegex._
   import ListUtils._
 
   def usedCharacters[C](r: Regex[C]): List[C] = {
