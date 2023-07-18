@@ -113,7 +113,7 @@ object VerifiedNFA {
           newTransition
         )
 
-        lemmaAddNewTransitionPreservesForallStatesContained(
+        lemmaAddNewTransitionWithOneNewStatePreservesForallStatesContained(
           transitions,
           newTransition,
           ste,
@@ -121,8 +121,7 @@ object VerifiedNFA {
           allStates
         )
 
-        val res = (ste, newAllStates, newTransitions)
-        res
+        (ste, newAllStates, newTransitions)
 
       }
       case Union(rOne, rTwo) => {
@@ -172,6 +171,11 @@ object VerifiedNFA {
       }
       case Star(r) => {
         val ste = getFreshState(allStates)
+        ListUtils.lemmaForallContainsAddingInSndListPreserves(
+          transitionsStates(transitions),
+          allStates,
+          ste
+        )
         val (innerSte, statesAfterInner, transitionsAfterInner) =
           go(r, ste)(Cons(ste, allStates), transitions, errorState)
         val newTransitions: List[Transition[C]] = Cons(
@@ -269,7 +273,7 @@ object VerifiedNFA {
 
   @inlineOnce
   @opaque
-  def lemmaAddNewTransitionPreservesForallStatesContained[C](
+  def lemmaAddNewTransitionWithOneNewStatePreservesForallStatesContained[C](
       transitions: List[Transition[C]],
       t: Transition[C],
       s1: State,
@@ -277,6 +281,7 @@ object VerifiedNFA {
       oldStates: List[State]
   ): Unit = {
     require(transitionsStates(transitions).forall(s => oldStates.contains(s)))
+    require(oldStates.contains(s2))
     require(t match {
       case EpsilonTransition(from, to)    => from == s1 && to == s2
       case LabeledTransition(from, _, to) => from == s1 && to == s2
@@ -285,16 +290,11 @@ object VerifiedNFA {
     ListUtils.lemmaForallContainsAddingInSndListPreserves(
       transitionsStates(transitions),
       oldStates,
-      s2
-    )
-    ListUtils.lemmaForallContainsAddingInSndListPreserves(
-      transitionsStates(transitions),
-      Cons(s2, oldStates),
       s1
     )
 
   } ensuring (transitionsStates(Cons(t, transitions)).forall(s =>
-    Cons(s1, Cons(s2, oldStates)).contains(s)
+    Cons(s1, oldStates).contains(s)
   ))
 
   @inlineOnce
