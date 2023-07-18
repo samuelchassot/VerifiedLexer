@@ -313,7 +313,6 @@ object VerifiedNFAMatcher {
         getEpsilongTransitionsFrom(currentState, nfa, nfa.transitions)
       }
       if (currentTransitions.isEmpty) {
-        // TODO Think about it but it seems that we can stop here
         if (nfa.finalStates.contains(currentState)) {
           ListUtils.lemmaConcatTwoListThenFirstIsPrefix(pastChars, suffix)
           check(ListUtils.isPrefix(pastChars, pastChars ++ suffix))
@@ -349,13 +348,14 @@ object VerifiedNFAMatcher {
             followingT2
           }
         }
+        val suffixBis = suffix
         if (nfa.finalStates.contains(currentState)) {
           if (resAfterFollowing._1.size >= pastChars.size) {
             resAfterFollowing
           } else {
-            ListUtils.lemmaConcatTwoListThenFirstIsPrefix(pastChars, suffix)
-            check(ListUtils.isPrefix(pastChars, pastChars ++ suffix))
-            (pastChars, suffix)
+            ListUtils.lemmaConcatTwoListThenFirstIsPrefix(pastChars, suffixBis)
+            check(ListUtils.isPrefix(pastChars, pastChars ++ suffixBis))
+            (pastChars, suffixBis)
           }
         } else {
           resAfterFollowing
