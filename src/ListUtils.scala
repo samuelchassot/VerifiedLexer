@@ -621,6 +621,56 @@ object ListUtils {
 
   @inlineOnce
   @opaque
+  def lemmaForallContainsAddingInSndListPreserves[B](
+      l: List[B],
+      lRef: List[B],
+      b: B
+  ): Unit = {
+    require(l.forall(e => lRef.contains(e)))
+
+    l match {
+      case Cons(hd, tl) =>
+        lemmaForallContainsAddingInSndListPreserves(tl, lRef, b)
+      case Nil() => ()
+    }
+
+  } ensuring (l.forall(e => Cons(b, lRef).contains(e)))
+
+  @inlineOnce
+  @opaque
+  def lemmaForallContainsAddingElmtInPreserves[B](
+      l: List[B],
+      lRef: List[B],
+      b: B
+  ): Unit = {
+    require(l.forall(e => lRef.contains(e)))
+    require(lRef.contains(b))
+
+    l match {
+      case Cons(hd, tl) =>
+        lemmaForallContainsAddingElmtInPreserves(tl, lRef, b)
+      case Nil() => ()
+    }
+
+  } ensuring (Cons(b, l).forall(e => lRef.contains(e)))
+
+  // @inlineOnce
+  // @opaque
+  // def lemmaSameContentAndForallContainsThenForallContaing[B](l1: List[B], l2: List[B], lInner: List[B]): Unit = {
+  //   require(l1.content == l2.content)
+  //   require(l1.forall(e => lInner.contains(e)))
+
+  //   l1 match {
+  //     case Cons(hd, tl) => {
+  //       lemmaSameContentAndForallContainsThenForallContaing(tl, l2, lInner)
+  //       lemmaForallContainsThenInOtherList(lInner, l2, hd)
+  //     }
+  //     case Nil() => ()
+  //   }
+  // } ensuring (l2.forall(e => lInner.contains(e)))
+
+  @inlineOnce
+  @opaque
   def lemmaRemoveElmtContainedSizeSmaller[B](l: List[B], e: B): Unit = {
     require(l.contains(e))
     l match {
@@ -634,4 +684,16 @@ object ListUtils {
       case Nil()        => check(false)
     }
   } ensuring ((l - e).size < l.size)
+
+  @inlineOnce
+  @opaque
+  def noDuplicateConcatNotContainedPreserves[B](l: List[B], b: B): Unit = {
+    require(ListOps.noDuplicate(l))
+    require(!l.contains(b))
+
+    assert(!l.contains(b))
+    assert(ListOps.noDuplicate(Cons(b, l)))
+
+  } ensuring (ListOps.noDuplicate(Cons(b, l)))
+
 }
