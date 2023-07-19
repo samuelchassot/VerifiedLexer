@@ -696,4 +696,20 @@ object ListUtils {
 
   } ensuring (ListOps.noDuplicate(Cons(b, l)))
 
+  @inlineOnce
+  @opaque
+  def notContainsAddNotEqThenNotContains[B](
+      l: List[B],
+      b: B,
+      diffB: B
+  ): Unit = {
+    require(!l.contains(b))
+    require(b != diffB)
+
+    l match {
+      case Nil()        => ()
+      case Cons(hd, tl) => notContainsAddNotEqThenNotContains(tl, b, diffB)
+    }
+
+  } ensuring (!Cons(diffB, l).contains(b))
 }
