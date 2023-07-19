@@ -145,7 +145,9 @@ object VerifiedNFA {
         ListSpecs.subseqContains(statesAfterOne, statesAfterTwo, steOne)
 
         val res = (ste, Cons(ste, statesAfterTwo), newTransitions)
+
         assert(ListOps.noDuplicate(res._3)) // TODO
+
         assert(
           transitionsStates(res._3).forall(s => res._2.contains(s))
         ) // TODO
@@ -156,6 +158,7 @@ object VerifiedNFA {
         val (steTwo, statesAfterTwo, transitionsAfterTwo) =
           go(rTwo, cont)(allStates, transitions, errorState)
         ListSpecs.subseqContains(allStates, statesAfterTwo, errorState)
+
         val (ste, statesAfterOne, newTransitions) =
           go(rOne, steTwo)(statesAfterTwo, transitionsAfterTwo, errorState)
 
@@ -167,6 +170,7 @@ object VerifiedNFA {
           statesAfterOne
         )
         ListSpecs.subseqContains(allStates, statesAfterOne, cont)
+
         (ste, statesAfterOne, newTransitions)
       }
       case Star(r) => {
@@ -176,8 +180,11 @@ object VerifiedNFA {
           allStates,
           ste
         )
+        assert(transitionsFrom(ste, transitions).isEmpty) // TODO
         val (innerSte, statesAfterInner, transitionsAfterInner) =
           go(r, ste)(Cons(ste, allStates), transitions, errorState)
+
+        assert(transitionsFrom(ste, transitionsAfterInner).isEmpty) // TODO
         val newTransitions: List[Transition[C]] = Cons(
           EpsilonTransition(ste, innerSte),
           Cons(EpsilonTransition(ste, cont), transitionsAfterInner)
@@ -207,11 +214,7 @@ object VerifiedNFA {
         )
 
         assert(ListOps.noDuplicate(newTransitions)) // TODO
-        val res = (ste, statesAfterInner, newTransitions)
-        assert(
-          transitionsStates(res._3).forall(s => res._2.contains(s))
-        ) // TODO
-        res
+        (ste, statesAfterInner, newTransitions)
       }
     }
 
@@ -401,6 +404,29 @@ object VerifiedNFA {
       case Cons(hd, tl) => lemmaLabelBiggerThanMaxIdIsNotInList(tl, newLabel)
     }
   } ensuring (!states.contains(State(newLabel)))
+
+  def lemmaTransitionFromPreservedAddingOther[C](
+      transitions: List[Transition[C]],
+      t: Transition[C],
+      from: State,
+      otherFrom: State
+  ): Unit = {
+    require(from != otherFrom)
+    require(t match {
+      case EpsilonTransition(ffrom, _)    => ffrom == otherFrom
+      case LabeledTransition(ffrom, _, _) => ffrom == otherFrom
+    })
+
+    transitions match {
+      case Nil() => ()
+      case Cons(hd, tl) =>
+        lemmaTransitionFromPreservedAddingOther(tl, t, from, otherFrom)
+    }
+
+  } ensuring (transitionsFrom(from, Cons(t, transitions)) == transitionsFrom(
+    from,
+    transitions
+  ))
 
 }
 
