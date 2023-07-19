@@ -430,23 +430,51 @@ object VerifiedNFAMatcher {
     )
   )
 
-  def epsilonClosure[C](
+  def epsilonClosure[C](nfa: NFA[C], toExplore: List[State], seen: List[State]): List[State] = {
+    require(validNFA(nfa))
+    require(toExplore.forall(s => nfa.allStates.contains(s)))
+    require(seen.forall(s => nfa.allStates.contains(s)))
+    require(ListOps.noDuplicate(seen))
+    require(ListOps.noDuplicate(toExplore))
+    decreases({
+      lemmaForallContainsAndNoDuplicateThenSmallerList(nfa.allStates, seen)
+      lemmaForallContainsAndNoDuplicateThenSmallerList(nfa.allStates, toExplore)
+      (nfa.allStates.size - seen.size) * nfa.allStates.size + toExplore.size
+    })
+
+    toExplore match {
+      case Nil() => seen
+      case Cons(hd, tl) => {
+        if (seen.contains(hd)) {
+          epsilonClosure(nfa, tl, seen)
+        } else {
+          val reachableFromHd = unseenReachableStatesThroughEpsilon(nfa.transitions, nfa.transitions, hd, seen ++ toExplore, Nil())
+          val newToExplore = tl ++ reachableFromHd
+          val newSeen = Cons(hd, seen)
+          epsilonClosure(nfa, newToExplore, newSeen)
+        }
+      }
+    }
+
+  } ensuring (res => ListOps.noDuplicate(res) && res.forall(s => nfa.allStates.contains(s)))
+
+  def epsilonClosureFromOneState[C](
       nfa: NFA[C],
-      startStates: List[State],
+      startState: State,
       transitionsRec: List[Transition[C]],
       seen: List[State]
   ): List[State] = {
     require(validNFA(nfa))
     require(ListSpecs.subseq(transitionsRec, nfa.transitions))
-    require(startStates.forall(s => nfa.allStates.contains(s)))
+    require(nfa.allStates.contains(startState))
     require(seen.forall(s => nfa.allStates.contains(s)))
     require(ListOps.noDuplicate(seen))
     decreases({
       lemmaForallContainsAndNoDuplicateThenSmallerList(nfa.allStates, seen)
-      nfa.allStates.size - seen.size + transitionsRec.size
+      (nfa.allStates.size - seen.size) * nfa.transitions.size + transitionsRec.size
     })
 
-    if (seen.forall(s => startStates.contains(s))) {
+    if (seen.contains(startState)) {
       seen
     } else {
       transitionsRec match {
@@ -458,8 +486,8 @@ object VerifiedNFAMatcher {
 
           hd match {
             case EpsilonTransition(from, to) => {
-              if (startStates.contains(from)) {
-                val newSeen = Cons(from, seen)
+              if (from == startState) {
+                val newSeen = Cons(startState, seen)
                 ListSpecs.subseqContains(transitionsRec, nfa.transitions, hd)
                 lemmaTransitionThenStatesInTransitionsStates(
                   nfa.transitions,
@@ -467,19 +495,69 @@ object VerifiedNFAMatcher {
                 )
                 ListUtils.lemmaSubseqRefl(nfa.transitions)
                 lemmaInTransitionsStatesThenInAll(nfa, to)
-                epsilonClosure(nfa, Cons(to, startStates), tl, newSeen)
+                epsilonClosureFromOneState(nfa, to, nfa.transitions, newSeen)
               } else {
-                epsilonClosure(nfa, startStates, tl, seen)
+                epsilonClosureFromOneState(nfa, startState, tl, seen)
               }
             }
             case LabeledTransition(from, c, to) => {
-              epsilonClosure(nfa, startStates, tl, seen)
+              epsilonClosureFromOneState(nfa, startState, tl, seen)
             }
           }
         }
       }
     }
   } ensuring (res => ListOps.noDuplicate(res) && res.forall(s => nfa.allStates.contains(s)))
+
+  def unseenReachableStatesThroughEpsilon[C](transitions: List[Transition[C]], transitionsRec: List[Transition[C]], from: State, seen: List[State], acc: List[State]): List[State] = {
+    require(ListOps.noDuplicate(acc))
+    require(acc.forall(s => !seen.contains(s)))
+    require(acc.forall(s => transitionsStates(transitions).contains(s)))
+    require(ListSpecs.subseq(transitionsRec, transitions))
+
+    transitionsRec match {
+      case Nil() => acc
+      case Cons(hd, tl) =>
+        hd match {
+          case EpsilonTransition(ffrom, to) if ffrom == from && !seen.contains(to) && !acc.contains(to) => {
+
+            ListUtils.lemmaTailIsSubseqOfList(hd, tl)
+            ListUtils.lemmaSubSeqTransitive(tl, transitionsRec, transitions)
+            ListSpecs.subseqContains(transitionsRec, transitions, hd)
+
+            lemmaTransitionInListThenToStatesInTransitionsStates(transitions, hd)
+
+            val trStates = transitionsStates(transitions)
+            assert(acc.forall(s => transitionsStates(transitions).contains(s)) == acc.forall(s => trStates.contains(s)))
+            assert(acc.forall(s => transitionsStates(transitions).contains(s)))
+            check(acc.forall(s => trStates.contains(s)))
+            ListUtils.lemmaForallContainsAddingElmtInPreserves(acc, trStates, to)
+
+            val res = unseenReachableStatesThroughEpsilon(transitions, tl, from, seen, Cons(to, acc))
+
+            assert(ListOps.noDuplicate(acc))
+            assert(acc.forall(s => !seen.contains(s)))
+            assert(acc.forall(s => transitionsStates(transitions).contains(s)))
+            assert(ListOps.noDuplicate(res))
+            assert(res.forall(s => !seen.contains(s)))
+            assert(res.forall(s => transitionsStates(transitions).contains(s)))
+            res
+          }
+          case _ => {
+            ListUtils.lemmaTailIsSubseqOfList(hd, tl)
+            ListUtils.lemmaSubSeqTransitive(tl, transitionsRec, transitions)
+            unseenReachableStatesThroughEpsilon(transitions, tl, from, seen, acc)
+          }
+        }
+    }
+  } ensuring (res =>
+    ListOps.noDuplicate(acc) &&
+      acc.forall(s => !seen.contains(s)) &&
+      acc.forall(s => transitionsStates(transitions).contains(s)) &&
+      ListOps.noDuplicate(res) &&
+      res.forall(s => !seen.contains(s)) &&
+      res.forall(s => transitionsStates(transitions).contains(s))
+  )
 
   def lemmaInTransitionsStatesThenInAll[C](
       nfa: NFA[C],
