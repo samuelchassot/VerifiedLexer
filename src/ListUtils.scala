@@ -70,8 +70,7 @@ object ListUtils {
     require(consecutiveSubseq(l1, l2))
     decreases(l1.size + l2.size)
     (l1, l2) match {
-      case (Cons(hd1, tl1), Cons(hd2, tl2))
-          if consecutiveSubseqAtHead(l1, l2) =>
+      case (Cons(hd1, tl1), Cons(hd2, tl2)) if consecutiveSubseqAtHead(l1, l2) =>
         lemmaConsecutiveSubseqThenSubseq(tl1, tl2)
       case (Cons(hd1, tl1), Cons(hd2, tl2)) =>
         lemmaConsecutiveSubseqThenSubseq(l1, tl2)
@@ -439,9 +438,7 @@ object ListUtils {
         concatWithoutDuplicates(Cons(hd, baseList), tl)
       case Nil() => baseList
     }
-  } ensuring (res =>
-    ListOps.noDuplicate(res) && (baseList ++ newList).content == res.content
-  )
+  } ensuring (res => ListOps.noDuplicate(res) && (baseList ++ newList).content == res.content)
 
   @inlineOnce
   @opaque
@@ -449,12 +446,10 @@ object ListUtils {
     require(ListOps.noDuplicate(acc))
     list match {
       case Cons(hd, tl) if acc.contains(hd) => removeDuplicates(tl, acc)
-      case Cons(hd, tl) => removeDuplicates(tl, Cons(hd, acc))
-      case Nil()        => acc
+      case Cons(hd, tl)                     => removeDuplicates(tl, Cons(hd, acc))
+      case Nil()                            => acc
     }
-  } ensuring (res =>
-    ListOps.noDuplicate(res) && res.content == (list ++ acc).content
-  )
+  } ensuring (res => ListOps.noDuplicate(res) && res.content == (list ++ acc).content)
 
   @inlineOnce
   @opaque
@@ -570,8 +565,8 @@ object ListUtils {
 
     l1 match {
       case Cons(hd, tl) if hd == e => ()
-      case Cons(hd, tl) => lemmaForallContainsThenInOtherList(tl, l2, e)
-      case Nil()        => ()
+      case Cons(hd, tl)            => lemmaForallContainsThenInOtherList(tl, l2, e)
+      case Nil()                   => ()
     }
   } ensuring (l2.contains(e))
 
@@ -653,6 +648,21 @@ object ListUtils {
     }
 
   } ensuring (Cons(b, l).forall(e => lRef.contains(e)))
+
+  @inlineOnce
+  @opaque
+  def lemmaForallContainsPreservedIfSameContent[B](l1: List[B], l2: List[B], lRef: List[B]): Unit = {
+    require(l1.forall(b => lRef.contains(b)))
+    require(l2.content.subsetOf(l1.content))
+
+    l2 match {
+      case Nil() => ()
+      case Cons(hd, tl) => {
+        ListSpecs.forallContained(l1, b => lRef.contains(b), hd)
+        lemmaForallContainsPreservedIfSameContent(l1, tl, lRef)
+      }
+    }
+  } ensuring (l2.forall(b => lRef.contains(b)))
 
   // @inlineOnce
   // @opaque
