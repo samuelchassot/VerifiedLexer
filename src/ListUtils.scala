@@ -477,6 +477,15 @@ object ListUtils {
 
   @inlineOnce
   @opaque
+  def lemmaTailIsSubseqOfListBis[B](l: List[B]): Unit = {
+    l match {
+      case Nil()        => ()
+      case Cons(hd, tl) => lemmaTailIsSubseqOfList(hd, tl)
+    }
+  } ensuring (l.isEmpty || ListSpecs.subseq(l.tail, l))
+
+  @inlineOnce
+  @opaque
   def lemmaSubSeqTransitive[B](l1: List[B], l2: List[B], l3: List[B]): Unit = {
     require(ListSpecs.subseq(l1, l2))
     require(ListSpecs.subseq(l2, l3))
@@ -651,6 +660,35 @@ object ListUtils {
 
   @inlineOnce
   @opaque
+  def lemmaForallContainsConcatPreserves[B](l1: List[B], l2: List[B], lRef: List[B]): Unit = {
+    require(l1.forall(b => lRef.contains(b)))
+    require(l2.forall(b => lRef.contains(b)))
+    l1 match {
+      case Nil() => ()
+      case Cons(hd, tl) => {
+        lemmaForallContainsConcatPreserves(tl, l2, lRef)
+      }
+    }
+  } ensuring ((l1 ++ l2).forall(b => lRef.contains(b)))
+
+  @inlineOnce
+  @opaque
+  def lemmaForallContainsPreservedRemoveElmt[B](@induct l: List[B], lRef: List[B], b: B): Unit = {
+    require(l.forall(b => lRef.contains(b)))
+
+  } ensuring ((l - b).forall(b => lRef.contains(b)))
+
+  @inlineOnce
+  @opaque
+  def lemmaForallContainsPreservedRemoveElmtInRefList[B](@induct l: List[B], lRef: List[B], newLRef: List[B], b: B): Unit = {
+    require(l.forall(bb => lRef.contains(bb)))
+    require(!l.contains(b))
+    require(newLRef == lRef - b)
+
+  } ensuring (l.forall(bb => newLRef.contains(bb)))
+
+  @inlineOnce
+  @opaque
   def lemmaForallContainsPreservedIfSameContent[B](l1: List[B], l2: List[B], lRef: List[B]): Unit = {
     require(l1.forall(b => lRef.contains(b)))
     require(l2.content.subsetOf(l1.content))
@@ -664,20 +702,52 @@ object ListUtils {
     }
   } ensuring (l2.forall(b => lRef.contains(b)))
 
-  // @inlineOnce
-  // @opaque
-  // def lemmaSameContentAndForallContainsThenForallContaing[B](l1: List[B], l2: List[B], lInner: List[B]): Unit = {
-  //   require(l1.content == l2.content)
-  //   require(l1.forall(e => lInner.contains(e)))
+  @inlineOnce
+  @opaque
+  def lemmaForallNotContainsForSubseq[B](@induct l: List[B], l1: List[B], l2: List[B]): Unit = {
+    require(l.forall(b => !(l1 ++ l2).contains(b)))
 
-  //   l1 match {
-  //     case Cons(hd, tl) => {
-  //       lemmaSameContentAndForallContainsThenForallContaing(tl, l2, lInner)
-  //       lemmaForallContainsThenInOtherList(lInner, l2, hd)
-  //     }
-  //     case Nil() => ()
-  //   }
-  // } ensuring (l2.forall(e => lInner.contains(e)))
+  } ensuring (l.forall(b => !l1.contains(b)) && l.forall(b => !l2.contains(b)))
+
+  @inlineOnce
+  @opaque
+  def lemmaForallNotContainsForConcat[B](@induct l1: List[B], l2: List[B], lRef: List[B]): Unit = {
+    require(l1.forall(b => !lRef.contains(b)))
+    require(l2.forall(b => !lRef.contains(b)))
+
+  } ensuring ((l1 ++ l2).forall(b => !lRef.contains(b)))
+
+  @inlineOnce
+  @opaque
+  def lemmaForallNotContainsCannotContain[B](@induct l: List[B], lRef: List[B], b: B): Unit = {
+    require(l.forall(bb => !lRef.contains(bb)))
+    require(lRef.contains(b))
+
+  } ensuring (!l.contains(b))
+
+  @inlineOnce
+  @opaque
+  def lemmaNoDuplicateConcatThenForallNotContains[B](@induct l1: List[B], l2: List[B]): Unit = {
+    require(ListSpecs.noDuplicate(l1 ++ l2))
+
+  } ensuring (l1.forall(b => !l2.contains(b)))
+
+  @inlineOnce
+  @opaque
+  def lemmaForallNotContainsPreservedAddNewElmtInRefList[B](@induct l: List[B], lRef: List[B], b: B): Unit = {
+    require(l.forall(bb => !lRef.contains(bb)))
+    require(!l.contains(b))
+
+  } ensuring (l.forall(bb => !Cons(b, lRef).contains(bb)))
+
+  @inlineOnce
+  @opaque
+  def lemmaForallNotContainedNoDupThenConcatNoDup[B](@induct l1: List[B], l2: List[B]): Unit = {
+    require(l1.forall(b => !l2.contains(b)))
+    require(ListSpecs.noDuplicate(l1))
+    require(ListSpecs.noDuplicate(l2))
+
+  } ensuring (ListSpecs.noDuplicate(l1 ++ l2))
 
   @inlineOnce
   @opaque
@@ -697,6 +767,20 @@ object ListUtils {
 
   @inlineOnce
   @opaque
+  def lemmaRemoveOneElmtNoDuplicateSizeMinusOne[B](l: List[B], b: B): Unit = {
+    require(ListSpecs.noDuplicate(l))
+    require(l.contains(b))
+
+    l match {
+      case Nil()                   => ()
+      case Cons(hd, tl) if hd == b => lemmaRemoveOneElmtNotContainedSameList(tl, b)
+      case Cons(hd, tl)            => lemmaRemoveOneElmtNoDuplicateSizeMinusOne(tl, b)
+    }
+
+  } ensuring (l.isEmpty || (l - b).size == l.size - 1)
+
+  @inlineOnce
+  @opaque
   def noDuplicateConcatNotContainedPreserves[B](l: List[B], b: B): Unit = {
     require(ListOps.noDuplicate(l))
     require(!l.contains(b))
@@ -705,6 +789,98 @@ object ListUtils {
     assert(ListOps.noDuplicate(Cons(b, l)))
 
   } ensuring (ListOps.noDuplicate(Cons(b, l)))
+
+  @inlineOnce
+  @opaque
+  def noDuplicateConcatListNotContainedPreserves[B](l: List[B], lB: List[B]): Unit = {
+    require(ListOps.noDuplicate(l))
+    require(ListOps.noDuplicate(lB))
+    require(lB.forall(b => !l.contains(b)))
+
+    lB match {
+      case Cons(hd, tl) => noDuplicateConcatListNotContainedPreserves(l, tl)
+      case Nil()        => ()
+    }
+
+  } ensuring (ListOps.noDuplicate(lB ++ l))
+
+  def lemmaNoDuplicatePreservedSameContent[B](l1: List[B], l2: List[B]): Unit = {
+    require(ListSpecs.noDuplicate(l1))
+    require(l1.size == l2.size)
+    require(l1.content == l2.content)
+
+    lemmaSubsetContentThenForallContains(l1, l2)
+    lemmaSubsetContentThenForallContains(l2, l1)
+    assert(l1.forall(b => l2.contains(b)))
+    assert(l2.forall(b => l1.contains(b)))
+    l2 match {
+      case Nil() => ()
+      case Cons(hd, tl) => {
+        assert(l1.contains(hd))
+        val newL1 = l1 - hd
+        lemmaRemoveOneElmtPreservesNoDuplicate(l1, hd)
+        lemmaRemoveOneElmtNoDuplicateSizeMinusOne(l1, hd)
+
+        assert(l2.size >= l1.size)
+        lemmaForallContainsPreservedRemoveElmt(l1, l2, hd)
+        assert(newL1.forall(b => l2.contains(b)))
+        lemmaForallContainsAndNoDuplicateThenSmallerList(l2, newL1)
+        assert(l2.size >= newL1.size)
+        assert(!newL1.contains(hd))
+        assert(ListSpecs.noDuplicate(newL1))
+        assert(newL1.forall(b => l2.contains(b)))
+        lemmaForallContainsPreservedRemoveElmtInRefList(newL1, l2, l2 - hd, hd)
+        assert(newL1.forall(bb => (l2 - hd).contains(bb)))
+        val l2RemHd = l2 - hd
+        check(newL1.forall(b => l2RemHd.contains(b)))
+        lemmaForallContainsAndNoDuplicateThenSmallerList(l2RemHd, newL1)
+        assert((l2 - hd).size >= newL1.size)
+        if (tl.contains(hd)) {
+          lemmaRemoveElmtContainedSizeSmaller(tl, hd)
+          assert((tl - hd).size < tl.size)
+          assert((l2 - hd).size < tl.size)
+          assert((l2 - hd).size < newL1.size)
+          check(false)
+        }
+
+        lemmaNoDuplicatePreservedSameContent(newL1, tl)
+      }
+    }
+  } ensuring (ListSpecs.noDuplicate(l2))
+
+  @inlineOnce
+  @opaque
+  def lemmaRemoveOneElmtNotContainedSameList[B](l: List[B], b: B): Unit = {
+    require(!l.contains(b))
+
+    l match {
+      case Nil()        => ()
+      case Cons(hd, tl) => lemmaRemoveOneElmtNotContainedSameList(tl, b)
+    }
+  } ensuring (l - b == l)
+
+  @inlineOnce
+  @opaque
+  def lemmaRemoveOneElmtPreservesNoDuplicate[B](l: List[B], b: B): Unit = {
+    require(ListSpecs.noDuplicate(l))
+
+    l match {
+      case Nil()                   => ()
+      case Cons(hd, tl) if hd == b => lemmaRemoveOneElmtPreservesNoDuplicate(tl, b)
+      case Cons(hd, tl)            => lemmaRemoveOneElmtPreservesNoDuplicate(tl, b)
+    }
+
+  } ensuring (ListSpecs.noDuplicate(l - b))
+
+  @inlineOnce
+  @opaque
+  def lemmaSubsetContentThenForallContains[B](l1: List[B], l2: List[B]): Unit = {
+    require(l1.content.subsetOf(l2.content))
+    l1 match {
+      case Nil()        => ()
+      case Cons(hd, tl) => lemmaSubsetContentThenForallContains(tl, l2)
+    }
+  } ensuring (l1.forall(b => l2.contains(b)))
 
   @inlineOnce
   @opaque
