@@ -665,12 +665,12 @@ object VerifiedNFAMatcher {
       val newSuffix = suffix.tail
       val afterConsumingNextChar = readOneChar(nfa, nfa.transitions, currentStates, nextChar)
 
-      assert(afterConsumingNextChar.forall(s => nfa.allStates.contains(s)))
+      assert(afterConsumingNextChar.forall(s => nfa.allStates.contains(s))) // TODO
 
       val afterEpsilon = epsilonClosure(nfa, afterConsumingNextChar)
 
-      assert(input == newPastChars ++ newSuffix)
-      assert(afterEpsilon.content == epsilonClosure(nfa, afterEpsilon, Nil()).content)
+      ListUtils.lemmaTwoListsConcatAssociativity(pastChars, List(nextChar), newSuffix)
+      assert(afterEpsilon.content == epsilonClosure(nfa, afterEpsilon, Nil()).content) // TODO
       matchNFAInner(nfa, input, afterEpsilon, newPastChars, newSuffix)
     }
 
@@ -813,7 +813,7 @@ object VerifiedNFAMatcher {
         }
       case Nil() => acc
     }
-  } ensuring (res => ListSpecs.noDuplicate(res))
+  } ensuring (res => ListSpecs.noDuplicate(res) && res.forall(s => nfa.allStates.contains(s)))
 
   @inlineOnce
   @opaque
