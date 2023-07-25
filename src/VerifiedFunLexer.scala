@@ -29,7 +29,6 @@ object MainTest {
   }
   @extern
   def NFATests()(implicit @ghost state: State): Unit = {
-
     def testNfaMatch(testValues: List[List[Char]], r: Regex[Char])(implicit
         @ghost state: State
     ): Boolean = {
@@ -47,12 +46,12 @@ object MainTest {
         println("\nDEBUG nfa: " + nfa + "\n")
 
         // DEBUG END ------------------------------------------------------------------
-        val longestMatchRegex1 = VerifiedRegexMatcher.findLongestMatch(r, v)
-        val longestMatchNfa1 =
-          VerifiedNFAMatcher.findLongestMatch(fromRegexToNfa(r), v)
-        println("matched against regex: " + longestMatchRegex1)
-        println("matched against nfa: " + longestMatchNfa1)
-        val result = (longestMatchRegex1 == longestMatchNfa1)
+        val matchRegex1 = VerifiedRegexMatcher.matchR(r, v)
+        val matchNfa1 =
+          VerifiedNFAMatcher.matchNFA(fromRegexToNfa(r), v)
+        println("matched against regex: " + matchRegex1)
+        println("matched against nfa: " + matchNfa1)
+        val result = (matchRegex1 == matchNfa1)
         println("\n!!!!!!!!!!!!!!!!!!!!!!!!!!!! equal = " + result.toString)
         result
       }
@@ -69,12 +68,9 @@ object MainTest {
     )
     val stringList1 = List(
       List('a', 'b', 'a', 'b'),
-      List('a', 'b', 'a', 'b', 'c', 'd', 'e', 'c', 'd', 'e', 'c', 'd', 'e', 'a',
-        'b', 'a', 'b'),
-      List('a', 'b', 'a', 'b', 'c', 'd', 'e', 'c', 'd', 'e', 'c', 'd', 'e', 'a',
-        'b', 'a', 'b', 'g', 'g', 'g'),
-      List('a', 'b', 'a', 'b', 'c', 'd', 'e', 'c', 'd', 'e', 'c', 'd', 'e', 'a',
-        'b', 'a', 'b', 'a'),
+      List('a', 'b', 'a', 'b', 'c', 'd', 'e', 'c', 'd', 'e', 'c', 'd', 'e', 'a', 'b', 'a', 'b'),
+      List('a', 'b', 'a', 'b', 'c', 'd', 'e', 'c', 'd', 'e', 'c', 'd', 'e', 'a', 'b', 'a', 'b', 'g', 'g', 'g'),
+      List('a', 'b', 'a', 'b', 'c', 'd', 'e', 'c', 'd', 'e', 'c', 'd', 'e', 'a', 'b', 'a', 'b', 'a'),
       List('c', 'd', 'e', 'c', 'd', 'e'),
       List[Char](),
       List('a', 'b', 'a', 'b', 'a'),
@@ -95,12 +91,9 @@ object MainTest {
     )
     val stringList2 = List(
       List('a', 'b', 'a', 'b'),
-      List('a', 'b', 'a', 'b', 'c', 'd', 'e', 'c', 'd', 'e', 'c', 'd', 'e', 'a',
-        'b', 'a', 'b'),
-      List('a', 'b', 'a', 'b', 'c', 'd', 'e', 'c', 'd', 'e', 'c', 'd', 'e', 'a',
-        'b', 'a', 'b', 'g', 'g', 'g'),
-      List('a', 'b', 'a', 'b', 'c', 'd', 'e', 'c', 'd', 'e', 'c', 'd', 'e', 'a',
-        'b', 'a', 'b', 'a'),
+      List('a', 'b', 'a', 'b', 'c', 'd', 'e', 'c', 'd', 'e', 'c', 'd', 'e', 'a', 'b', 'a', 'b'),
+      List('a', 'b', 'a', 'b', 'c', 'd', 'e', 'c', 'd', 'e', 'c', 'd', 'e', 'a', 'b', 'a', 'b', 'g', 'g', 'g'),
+      List('a', 'b', 'a', 'b', 'c', 'd', 'e', 'c', 'd', 'e', 'c', 'd', 'e', 'a', 'b', 'a', 'b', 'a'),
       List('c', 'd', 'e', 'c', 'd', 'e'),
       List[Char](),
       List('a', 'b', 'a', 'b', 'a'),
@@ -108,24 +101,47 @@ object MainTest {
       List('a', 'c', 'd', 'b'),
       List('a', 'b', 'c', 'd', 'e', 'a', 'a', 'a', 'c', 'd', 'e'),
       List('a', 'b', 'a', 'b'),
-      List('a', 'b', 'a', 'b', 'f', 'f', 'c', 'd', 'e', 'c', 'd', 'e', 'c', 'd',
-        'e', 'a', 'b', 'a', 'b'),
-      List('a', 'b', 'a', 'b', 'c', 'd', 'e', 'c', 'd', 'e', 'c', 'd', 'e', 'a',
-        'b', 'a', 'b', 'g', 'g', 'g', 'f', 'f'),
-      List('f', 'f', 'a', 'b', 'a', 'b', 'c', 'd', 'e', 'c', 'd', 'e', 'c', 'd',
-        'e', 'a', 'b', 'a', 'b', 'a'),
+      List('a', 'b', 'a', 'b', 'f', 'f', 'c', 'd', 'e', 'c', 'd', 'e', 'c', 'd', 'e', 'a', 'b', 'a', 'b'),
+      List('a', 'b', 'a', 'b', 'c', 'd', 'e', 'c', 'd', 'e', 'c', 'd', 'e', 'a', 'b', 'a', 'b', 'g', 'g', 'g', 'f', 'f'),
+      List('f', 'f', 'a', 'b', 'a', 'b', 'c', 'd', 'e', 'c', 'd', 'e', 'c', 'd', 'e', 'a', 'b', 'a', 'b', 'a'),
       List('f', 'f', 'c', 'd', 'e', 'c', 'd', 'e'),
       List('a', 'b', 'a', 'b', 'a', 'f', 'f'),
       List('a', 'b', 'c', 'd', 'e', 'f'),
       List('a', 'c', 'f', 'f', 'd', 'b'),
-      List('a', 'b', 'f', 'a', 'b', 'f', 'c', 'd', 'e', 'a', 'a', 'a', 'c', 'd',
-        'e')
+      List('a', 'b', 'f', 'a', 'b', 'f', 'c', 'd', 'e', 'a', 'a', 'a', 'c', 'd', 'e')
     )
 
     val testResult2 = testNfaMatch(stringList2, r2)
 
+    val r3 = Star(ElementMatch('a'))
+    val stringList3 = List(
+      List[Char](),
+      List('a'),
+      List('a', 'a'),
+      List('a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a'),
+      List('a', 'b'),
+      List('a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'b'),
+      List('a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'b', 'a', 'a', 'a', 'a', 'a')
+    )
+
+    val testResult3 = testNfaMatch(stringList3, r3)
+
+    val r4 = Concat(ElementMatch('a'), ElementMatch('b'))
+    val stringList4 = List(
+      List[Char](),
+      List('a', 'b'),
+      List('a'),
+      List('a', 'b', 'a', 'b', 'a', 'b', 'a', 'b', 'a', 'b', 'a', 'b', 'a', 'b'),
+      List('a', 'b', 'a', 'b', 'a', 'b', 'a', 'b', 'a', 'b', 'a', 'b', 'a', 'a'),
+      List('a', 'b', 'a', 'b', 'a', 'b', 'a', 'b', 'a', 'b', 'a', 'b', 'a', 'b', 'a')
+    )
+
+    val testResult4 = testNfaMatch(stringList4, r4)
+
     println("TESTS RESULT 1 = " + testResult1.toString)
     println("TESTS RESULT 2 = " + testResult2.toString)
+    println("TESTS RESULT 3 = " + testResult3.toString)
+    println("TESTS RESULT 4 = " + testResult4.toString)
   }
 
 }
@@ -199,8 +215,7 @@ object VerifiedFunLexer {
       *
       * It lexes the input list of characters using the set of rules
       *
-      * It returns the produced list of Tokens and the remaining untokenised
-      * characters (normally empty)
+      * It returns the produced list of Tokens and the remaining untokenised characters (normally empty)
       *
       * @param rules
       * @param input
@@ -237,8 +252,7 @@ object VerifiedFunLexer {
       }
     }
 
-    /** Prints back the tokens to a list of characters of the type C, by adding
-      * a separatorToken between all of them, and after the last
+    /** Prints back the tokens to a list of characters of the type C, by adding a separatorToken between all of them, and after the last
       *
       * @param l
       * @param separatorToken
@@ -258,9 +272,7 @@ object VerifiedFunLexer {
       }
     }
 
-    /** Prints back the tokens to a list of characters of the type C, by adding
-      * a separatorToken between tokens when the maxPrefix would return another
-      * token if printed back to back.
+    /** Prints back the tokens to a list of characters of the type C, by adding a separatorToken between tokens when the maxPrefix would return another token if printed back to back.
       *
       * @param l
       * @param separatorToken
@@ -301,9 +313,7 @@ object VerifiedFunLexer {
       }
     }
 
-    /** Finds the biggest prefix matching any rule in the input list of
-      * characters If nothing matched a rule, returns None Else, returns the
-      * matched prefix as Token and the remaining suffix
+    /** Finds the biggest prefix matching any rule in the input list of characters If nothing matched a rule, returns None Else, returns the matched prefix as Token and the remaining suffix
       *
       * @param rulesArg
       * @param input
@@ -326,23 +336,17 @@ object VerifiedFunLexer {
             case (None(), None()) => None()
             case (c, None())      => c
             case (None(), o)      => o
-            case (Some(c), Some(o))
-                if c._1.characters.size >= o._1.characters.size =>
+            case (Some(c), Some(o)) if c._1.characters.size >= o._1.characters.size =>
               Some(c)
-            case (Some(c), Some(o))
-                if c._1.characters.size < o._1.characters.size =>
+            case (Some(c), Some(o)) if c._1.characters.size < o._1.characters.size =>
               Some(o)
           }
         }
       }
       ret
-    } ensuring (res =>
-      res.isEmpty || res.isDefined && (res.get._2.size < input.size && res.get._1.characters ++ res.get._2 == input)
-    )
+    } ensuring (res => res.isEmpty || res.isDefined && (res.get._2.size < input.size && res.get._1.characters ++ res.get._2 == input))
 
-    /** Finds the biggest prefix matching any rule in the input list of
-      * characters If nothing matched a rule, returns None Else, returns the
-      * matched prefix and the remaining suffix
+    /** Finds the biggest prefix matching any rule in the input list of characters If nothing matched a rule, returns None Else, returns the matched prefix and the remaining suffix
       *
       * @param rule
       * @param input
@@ -732,9 +736,7 @@ object VerifiedFunLexer {
         }
         case Nil() => None[Rule[C]]()
       }
-    } ensuring (res =>
-      res.isEmpty || rules.contains(res.get) && res.get.tag == tag
-    )
+    } ensuring (res => res.isEmpty || rules.contains(res.get) && res.get.tag == tag)
 
     // Lemmas --------------------------------------------------------------------------------------------------------------------------------
 
@@ -1242,8 +1244,7 @@ object VerifiedFunLexer {
       }
     } ensuring (!matchNFA(rBis.nfa, p))
 
-    /** Lemma which proves that indeed the getMaxPrefix indeed returns the
-      * maximal prefix that matches any rules
+    /** Lemma which proves that indeed the getMaxPrefix indeed returns the maximal prefix that matches any rules
       *
       * @param rules
       * @param r

@@ -486,6 +486,17 @@ object ListUtils {
 
   @inlineOnce
   @opaque
+  def lemmaTailIsSubseqOfBiggerList[B](l: List[B], lRef: List[B]): Unit = {
+    require(ListSpecs.subseq(l, lRef))
+    lemmaTailIsSubseqOfListBis(l)
+    if (!l.isEmpty) {
+      lemmaSubSeqTransitive(l.tail, l, lRef)
+
+    }
+  } ensuring (l.isEmpty || ListSpecs.subseq(l.tail, lRef))
+
+  @inlineOnce
+  @opaque
   def lemmaSubSeqTransitive[B](l1: List[B], l2: List[B], l3: List[B]): Unit = {
     require(ListSpecs.subseq(l1, l2))
     require(ListSpecs.subseq(l2, l3))

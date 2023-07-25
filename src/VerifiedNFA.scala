@@ -6,6 +6,7 @@ import stainless.lang._
 import stainless.collection._
 import stainless.annotation._
 import stainless.proof._
+import VerifiedNFA.LabeledTransition
 
 object VerifiedNFA {
   import RegularExpression._
@@ -166,7 +167,7 @@ object VerifiedNFA {
       transitions: List[Transition[C]],
       errorState: State
   ): (State, List[State], List[Transition[C]]) = {
-    require(ListOps.noDuplicate(allStates))
+    require(ListSpecs.noDuplicate(allStates))
     require(allStates.contains(cont))
     require(allStates.contains(errorState))
     require(transitionsStates(transitions).forall(s => allStates.contains(s)))
@@ -244,15 +245,14 @@ object VerifiedNFA {
         ListSpecs.subseqContains(Cons(ste, allStates), statesAfterInner, cont)
         ListSpecs.subseqContains(Cons(ste, allStates), statesAfterInner, ste)
 
-        ListUtils.lemmaTailIsSubseqOfList(ste, allStates)
-        ListUtils.lemmaSubSeqTransitive(allStates, Cons(ste, allStates), statesAfterInner)
+        ListUtils.lemmaTailIsSubseqOfBiggerList(Cons(ste, allStates), statesAfterInner)
 
         (ste, statesAfterInner, newTransitions)
       }
     }
 
   } ensuring (res =>
-    ListOps.noDuplicate(res._2)
+    ListSpecs.noDuplicate(res._2)
       && ListSpecs.subseq(allStates, res._2)
       && res._2.contains(cont)
       && res._2.contains(res._1)
@@ -456,7 +456,7 @@ object VerifiedNFA {
       newState: State,
       newT: Transition[C]
   ): Unit = {
-    require(ListOps.noDuplicate(states))
+    require(ListSpecs.noDuplicate(states))
     require(transitionsStates(transitions).forall(s => states.contains(s)))
     require(!states.contains(newState))
     require(newT match {
@@ -567,16 +567,31 @@ object VerifiedNFA {
 
   } ensuring (!transitions.contains(t))
 
+  def lemmaInTransitionsStatesThenInAll[C](
+      nfa: NFA[C],
+      s: State
+  ): Unit = {
+    require(validNFA(nfa))
+    require(transitionsStates(nfa.transitions).contains(s))
+
+    ListUtils.lemmaForallContainsThenInOtherList(
+      transitionsStates(nfa.transitions),
+      nfa.allStates,
+      s
+    )
+
+  } ensuring (nfa.allStates.contains(s))
+
   // Helper functions ---------------------------------------------------------------------------------------------------------------------------------------------
   def getFreshState(states: List[State]): State = {
-    require(ListOps.noDuplicate(states))
+    require(ListSpecs.noDuplicate(states))
     val newId = maxStateId(states) + 1
     lemmaMaxStatePlusOneNotInList(states)
     State(newId)
-  } ensuring (s => ListOps.noDuplicate(Cons(s, states)))
+  } ensuring (s => ListSpecs.noDuplicate(Cons(s, states)))
 
   def maxStateId(states: List[State]): BigInt = {
-    require(ListOps.noDuplicate(states))
+    require(ListSpecs.noDuplicate(states))
     states match {
       case Nil() => -1
       case Cons(hd, tl) => {
@@ -590,7 +605,7 @@ object VerifiedNFA {
     }
   }
   def lemmaMaxStatePlusOneNotInList(states: List[State]): Unit = {
-    require(ListOps.noDuplicate(states))
+    require(ListSpecs.noDuplicate(states))
     states match {
       case Cons(hd, tl) => {
         lemmaMaxStatePlusOneNotInList(tl)
@@ -606,7 +621,7 @@ object VerifiedNFA {
       states: List[State],
       newLabel: BigInt
   ): Unit = {
-    require(ListOps.noDuplicate(states))
+    require(ListSpecs.noDuplicate(states))
     require(maxStateId(states) < newLabel)
     states match {
       case Nil()        => ()
@@ -615,6 +630,8 @@ object VerifiedNFA {
   } ensuring (!states.contains(State(newLabel)))
 
 }
+
+// ----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 object VerifiedNFAMatcher {
   import VerifiedNFA._
@@ -625,47 +642,47 @@ object VerifiedNFAMatcher {
   @inline
   def matchNFA[C](nfa: NFA[C], input: List[C]): Boolean = {
     require(validNFA(nfa))
-    findLongestMatch(nfa, input)._2.isEmpty
+    val toExplore = epsilonClosure(nfa, List(nfa.startState), Nil())
+    assert(toExplore.content == epsilonClosure(nfa, toExplore, Nil()).content) // TODO
+    matchNFAInner(nfa, input, toExplore, Nil(), input)
   }
 
-  @inline
-  def findLongestMatch[C](nfa: NFA[C], input: List[C]): (List[C], List[C]) = {
+  def matchNFAInner[C](nfa: NFA[C], input: List[C], currentStates: List[State], pastChars: List[C], suffix: List[C]): Boolean = {
+    require(input == pastChars ++ suffix)
     require(validNFA(nfa))
-    findLongestMatchInner(nfa, nfa.startState, Nil(), input, Nil())
-  }
-
-  def findLongestMatchInner[C](
-      nfa: NFA[C],
-      currentState: State,
-      pastChars: List[C],
-      suffix: List[C],
-      seenStatesSinceLastConsumption: List[State]
-  ): (List[C], List[C]) = {
-    require(validNFA(nfa))
-    require(
-      seenStatesSinceLastConsumption.forall(s => nfa.allStates.contains(s))
-    )
-    require(
-      transitionsStates(nfa.transitions).contains(
-        currentState
-      ) || nfa.startState == currentState
-    )
+    require(currentStates.forall(s => nfa.allStates.contains(s)))
+    require(ListSpecs.noDuplicate(currentStates))
+    require(currentStates.content == epsilonClosure(nfa, currentStates, Nil()).content)
     decreases(suffix.size)
-    (pastChars, suffix)
-  } ensuring (res =>
-    res._1.isEmpty || res._1.size >= pastChars.size && ListUtils.isPrefix(
-      res._1,
-      pastChars ++ suffix
-    )
-  )
 
-  def epsilonClosure[C](nfa: NFA[C], toExplore: List[State], seen: List[State]): List[State] = {
+    if (suffix.isEmpty) {
+      !currentStates.filter(s => nfa.finalStates.contains(s)).isEmpty
+    } else {
+      ListUtils.lemmaSubseqRefl(nfa.transitions)
+
+      val nextChar = suffix.head
+      val newPastChars = pastChars ++ List(nextChar)
+      val newSuffix = suffix.tail
+      val afterConsumingNextChar = readOneChar(nfa, nfa.transitions, currentStates, nextChar)
+
+      assert(afterConsumingNextChar.forall(s => nfa.allStates.contains(s)))
+
+      val afterEpsilon = epsilonClosure(nfa, afterConsumingNextChar)
+
+      assert(input == newPastChars ++ newSuffix)
+      assert(afterEpsilon.content == epsilonClosure(nfa, afterEpsilon, Nil()).content)
+      matchNFAInner(nfa, input, afterEpsilon, newPastChars, newSuffix)
+    }
+
+  }
+
+  def epsilonClosure[C](nfa: NFA[C], toExplore: List[State], seen: List[State] = Nil()): List[State] = {
     require(validNFA(nfa))
     require(toExplore.forall(s => nfa.allStates.contains(s)))
     require(seen.forall(s => nfa.allStates.contains(s)))
-    require(ListOps.noDuplicate(seen))
-    require(ListOps.noDuplicate(toExplore))
-    require(ListOps.noDuplicate(toExplore ++ seen))
+    require(ListSpecs.noDuplicate(seen))
+    require(ListSpecs.noDuplicate(toExplore))
+    require(ListSpecs.noDuplicate(toExplore ++ seen))
     decreases({
       lemmaForallContainsAndNoDuplicateThenSmallerList(nfa.allStates, seen)
       lemmaForallContainsAndNoDuplicateThenSmallerList(nfa.allStates, toExplore)
@@ -703,14 +720,14 @@ object VerifiedNFAMatcher {
           assert(ListSpecs.noDuplicate(newToExplore))
           assert(ListSpecs.noDuplicate(newSeen))
           ListUtils.lemmaForallNotContainedNoDupThenConcatNoDup(newToExplore, newSeen)
-          assert(ListOps.noDuplicate(newToExplore ++ newSeen))
+          assert(ListSpecs.noDuplicate(newToExplore ++ newSeen))
 
           epsilonClosure(nfa, newToExplore, newSeen)
         }
       }
     }
 
-  } ensuring (res => ListOps.noDuplicate(res) && res.forall(s => nfa.allStates.contains(s)))
+  } ensuring (res => ListSpecs.noDuplicate(res) && res.forall(s => nfa.allStates.contains(s)))
 
   def unseenReachableStatesThroughEpsilon[C](
       allTransitions: List[Transition[C]],
@@ -720,10 +737,10 @@ object VerifiedNFAMatcher {
       toExplore: List[State],
       allStates: List[State]
   ): List[State] = {
-    require(ListOps.noDuplicate(seen))
-    require(ListOps.noDuplicate(toExplore))
-    require(ListOps.noDuplicate(transitions))
-    require(ListOps.noDuplicate(allTransitions))
+    require(ListSpecs.noDuplicate(seen))
+    require(ListSpecs.noDuplicate(toExplore))
+    require(ListSpecs.noDuplicate(transitions))
+    require(ListSpecs.noDuplicate(allTransitions))
     require(ListSpecs.subseq(transitions, epsilonTransitionsFrom(state, allTransitions)))
     require(toExplore.forall(s => allStates.contains(s)))
     require(seen.forall(s => allStates.contains(s)))
@@ -732,8 +749,7 @@ object VerifiedNFAMatcher {
     transitions match {
       case Nil() => Nil()
       case Cons(hd, tl) =>
-        ListUtils.lemmaTailIsSubseqOfList(hd, tl)
-        ListUtils.lemmaSubSeqTransitive(tl, transitions, epsilonTransitionsFrom(state, allTransitions))
+        ListUtils.lemmaTailIsSubseqOfBiggerList(transitions, epsilonTransitionsFrom(state, allTransitions))
         hd match {
           case EpsilonTransition(from, to) => {
             ListSpecs.subseqContains(transitions, epsilonTransitionsFrom(state, allTransitions), hd)
@@ -777,6 +793,28 @@ object VerifiedNFAMatcher {
       res.forall(s => !seen.contains(s))
   )
 
+  def readOneChar[C](nfa: NFA[C], transitionsRec: List[Transition[C]], startStates: List[State], c: C, acc: List[State] = Nil()): List[State] = {
+    require(validNFA(nfa))
+    require(ListSpecs.noDuplicate(startStates))
+    require(ListSpecs.noDuplicate(acc))
+    require(acc.forall(s => nfa.allStates.contains(s)))
+    require(ListSpecs.subseq(transitionsRec, nfa.transitions))
+    transitionsRec match {
+      case Cons(hd, tl) =>
+        ListUtils.lemmaTailIsSubseqOfBiggerList(transitionsRec, nfa.transitions)
+        hd match {
+          case LabeledTransition(from, cc, to) if cc == c && startStates.contains(from) && !acc.contains(to) => {
+            ListSpecs.subseqContains(transitionsRec, nfa.transitions, hd)
+            lemmaTransitionThenStatesInTransitionsStates(nfa.transitions, hd)
+            lemmaInTransitionsStatesThenInAll(nfa, to)
+            readOneChar(nfa, tl, startStates, c, Cons(to, acc))
+          }
+          case _ => readOneChar(nfa, tl, startStates, c, acc)
+        }
+      case Nil() => acc
+    }
+  } ensuring (res => ListSpecs.noDuplicate(res))
+
   @inlineOnce
   @opaque
   def lemmaForallContainsTransitionToPreservedAddingInRef[C](l: List[State], lRef: List[Transition[C]], t: Transition[C], state: State): Unit = {
@@ -789,103 +827,94 @@ object VerifiedNFAMatcher {
     }
   } ensuring (l.forall(s => Cons(t, lRef).contains(EpsilonTransition(state, s))))
 
-  def epsilonClosureFromOneState[C](
-      nfa: NFA[C],
-      startState: State,
-      transitionsRec: List[Transition[C]],
-      seen: List[State]
-  ): List[State] = {
-    require(validNFA(nfa))
-    require(ListSpecs.subseq(transitionsRec, nfa.transitions))
-    require(nfa.allStates.contains(startState))
-    require(seen.forall(s => nfa.allStates.contains(s)))
-    require(ListOps.noDuplicate(seen))
-    decreases({
-      lemmaForallContainsAndNoDuplicateThenSmallerList(nfa.allStates, seen)
-      (nfa.allStates.size - seen.size) * nfa.transitions.size + transitionsRec.size
-    })
+  // def epsilonClosureFromOneState[C](
+  //     nfa: NFA[C],
+  //     startState: State,
+  //     transitionsRec: List[Transition[C]],
+  //     seen: List[State]
+  // ): List[State] = {
+  //   require(validNFA(nfa))
+  //   require(ListSpecs.subseq(transitionsRec, nfa.transitions))
+  //   require(nfa.allStates.contains(startState))
+  //   require(seen.forall(s => nfa.allStates.contains(s)))
+  //   require(ListOps.noDuplicate(seen))
+  //   decreases({
+  //     lemmaForallContainsAndNoDuplicateThenSmallerList(nfa.allStates, seen)
+  //     (nfa.allStates.size - seen.size) * nfa.transitions.size + transitionsRec.size
+  //   })
 
-    if (seen.contains(startState)) {
-      seen
-    } else {
-      transitionsRec match {
-        case Nil() => seen
-        case Cons(hd, tl) => {
-          ListUtils.lemmaSubseqRefl(transitionsRec)
-          ListSpecs.subseqTail(transitionsRec, transitionsRec)
-          ListUtils.lemmaSubSeqTransitive(tl, transitionsRec, nfa.transitions)
+  //   if (seen.contains(startState)) {
+  //     seen
+  //   } else {
+  //     transitionsRec match {
+  //       case Nil() => seen
+  //       case Cons(hd, tl) => {
+  //         ListUtils.lemmaSubseqRefl(transitionsRec)
+  //         ListSpecs.subseqTail(transitionsRec, transitionsRec)
+  //         ListUtils.lemmaSubSeqTransitive(tl, transitionsRec, nfa.transitions)
 
-          hd match {
-            case EpsilonTransition(from, to) => {
-              if (from == startState) {
-                val newSeen = Cons(startState, seen)
-                ListSpecs.subseqContains(transitionsRec, nfa.transitions, hd)
-                lemmaTransitionThenStatesInTransitionsStates(
-                  nfa.transitions,
-                  hd
-                )
-                ListUtils.lemmaSubseqRefl(nfa.transitions)
-                lemmaInTransitionsStatesThenInAll(nfa, to)
-                epsilonClosureFromOneState(nfa, to, nfa.transitions, newSeen)
-              } else {
-                epsilonClosureFromOneState(nfa, startState, tl, seen)
-              }
-            }
-            case LabeledTransition(from, c, to) => {
-              epsilonClosureFromOneState(nfa, startState, tl, seen)
-            }
-          }
-        }
-      }
-    }
-  } ensuring (res => ListOps.noDuplicate(res) && res.forall(s => nfa.allStates.contains(s)))
+  //         hd match {
+  //           case EpsilonTransition(from, to) => {
+  //             if (from == startState) {
+  //               val newSeen = Cons(startState, seen)
+  //               ListSpecs.subseqContains(transitionsRec, nfa.transitions, hd)
+  //               lemmaTransitionThenStatesInTransitionsStates(
+  //                 nfa.transitions,
+  //                 hd
+  //               )
+  //               ListUtils.lemmaSubseqRefl(nfa.transitions)
+  //               lemmaInTransitionsStatesThenInAll(nfa, to)
+  //               epsilonClosureFromOneState(nfa, to, nfa.transitions, newSeen)
+  //             } else {
+  //               epsilonClosureFromOneState(nfa, startState, tl, seen)
+  //             }
+  //           }
+  //           case LabeledTransition(from, c, to) => {
+  //             epsilonClosureFromOneState(nfa, startState, tl, seen)
+  //           }
+  //         }
+  //       }
+  //     }
+  //   }
+  // } ensuring (res => ListOps.noDuplicate(res) && res.forall(s => nfa.allStates.contains(s)))
 
-  def lemmaInTransitionsStatesThenInAll[C](
-      nfa: NFA[C],
-      s: State
-  ): Unit = {
-    require(validNFA(nfa))
-    require(transitionsStates(nfa.transitions).contains(s))
+  // THEOREMS ---------------------------
+  def equivalenceTheorem[C](r: Regex[C], s: List[C]): Unit = {
+    require(validRegex(r))
 
-    ListUtils.lemmaForallContainsThenInOtherList(
-      transitionsStates(nfa.transitions),
-      nfa.allStates,
-      s
-    )
-
-  } ensuring (nfa.allStates.contains(s))
+  } ensuring (matchNFA(fromRegexToNfa(r), s) == VerifiedRegexMatcher.matchR(r, s))
 
   // Longest match theorems
-  def longestMatchIsAcceptedByMatchOrIsEmpty[C](
-      nfa: NFA[C],
-      input: List[C]
-  ): Unit = {
-    require(validNFA(nfa))
-    // lemmaNfaStartStatesForallContainsStatesOrStartStates(nfa, nfa.startStates)
-    // check(
-    //   nfa.startStates.forall(s =>
-    //     transitionsStates(nfa.transitions).contains(s) || nfa.startStates
-    //       .contains(s)
-    //   )
-    // )
-    // longestMatchIsAcceptedByMatchOrIsEmptyInner(
-    //   nfa,
-    //   input,
-    //   findLongestMatchInner(nfa, nfa.startStates, Nil(), input)._1,
-    //   Nil(),
-    //   nfa.startStates
-    // )
+  // def longestMatchIsAcceptedByMatchOrIsEmpty[C](
+  //     nfa: NFA[C],
+  //     input: List[C]
+  // ): Unit = {
+  //   require(validNFA(nfa))
+  // lemmaNfaStartStatesForallContainsStatesOrStartStates(nfa, nfa.startStates)
+  // check(
+  //   nfa.startStates.forall(s =>
+  //     transitionsStates(nfa.transitions).contains(s) || nfa.startStates
+  //       .contains(s)
+  //   )
+  // )
+  // longestMatchIsAcceptedByMatchOrIsEmptyInner(
+  //   nfa,
+  //   input,
+  //   findLongestMatchInner(nfa, nfa.startStates, Nil(), input)._1,
+  //   Nil(),
+  //   nfa.startStates
+  // )
 
-  } ensuring (findLongestMatchInner(
-    nfa,
-    nfa.startState,
-    Nil(),
-    input,
-    Nil()
-  )._1.isEmpty || matchNFA(
-    nfa,
-    findLongestMatchInner(nfa, nfa.startState, Nil(), input, Nil())._1
-  ))
+  // } ensuring (findLongestMatchInner(
+  //   nfa,
+  //   nfa.startState,
+  //   Nil(),
+  //   input,
+  //   Nil()
+  // )._1.isEmpty || matchNFA(
+  //   nfa,
+  //   findLongestMatchInner(nfa, nfa.startState, Nil(), input, Nil())._1
+  // ))
 
   // def longestMatchIsAcceptedByMatchOrIsEmptyInner[C](
   //     nfa: NFA[C],
@@ -1101,6 +1130,290 @@ object VerifiedNFAMatcher {
   //     .contains(s)
   // ))
 
+  // def longestMatchNoBiggerStringMatch[C](
+  //     baseNfa: NFA[C],
+  //     input: List[C],
+  //     returnP: List[C],
+  //     bigger: List[C]
+  // ): Unit = {
+  //   require(validNFA(baseNfa))
+  //   require(ListUtils.isPrefix(returnP, input))
+  //   require(ListUtils.isPrefix(bigger, input))
+  //   require(bigger.size >= returnP.size)
+  //   require(
+  //     findLongestMatchInner(
+  //       baseNfa,
+  //       baseNfa.startState,
+  //       Nil(),
+  //       input,
+  //       Nil()
+  //     )._1 == returnP
+  //   )
+
+  //   if (bigger.size == returnP.size) {
+  //     ListUtils.lemmaIsPrefixSameLengthThenSameList(bigger, returnP, input)
+  //   } else {
+  //     // if (matchR(baseR, bigger)) {
+  //     //   lemmaKnownAcceptedStringThenFromSmallPAtLeastThat(baseR, baseR, input, Nil(), bigger)
+  //     //   check(false)
+  //     // }
+  //   }
+
+  // } ensuring (bigger == returnP || !matchNFA(baseNfa, bigger))
+
+  // Regex equivalence theorem
+  // @extern
+  // def equivalenceTheorem[C](r: Regex[C], s: List[C]): Unit = {
+  //   require(validRegex(r))
+  //   assume(
+  //     findLongestMatch(fromRegexToNfa(r), s) == VerifiedRegexMatcher
+  //       .findLongestMatch(r, s)
+  //   )
+  // } ensuring (findLongestMatch(fromRegexToNfa(r), s) == VerifiedRegexMatcher
+  //   .findLongestMatch(r, s))
+
+  @inline
+  def findLongestMatch[C](nfa: NFA[C], input: List[C]): (List[C], List[C]) = {
+    require(validNFA(nfa))
+    findLongestMatchInner(nfa, List(nfa.startState), Nil(), input)
+  }
+
+  def findLongestMatchInner[C](
+      nfa: NFA[C],
+      currentStates: List[State],
+      pastChars: List[C],
+      suffix: List[C]
+  ): (List[C], List[C]) = {
+    require(validNFA(nfa))
+    require(currentStates.forall(s => nfa.allStates.contains(s)))
+    require(currentStates == epsilonClosure(nfa, currentStates, Nil()))
+    decreases(suffix.size)
+
+    if (!currentStates.filter(s => nfa.finalStates.contains(s)).isEmpty) {
+      // The NFA accepts pastChars
+      // We then need to continue to see if it accepts a longer string or return pastChars
+
+    } else {
+      // The NFA does NOT accept pastChars
+      // We then need to continue to see if it accepts a longer string or return None
+    }
+    (pastChars, suffix)
+  } ensuring (res => res._1.isEmpty || res._1.size >= pastChars.size && ListUtils.isPrefix(res._1, pastChars ++ suffix))
+
+  // Longest match theorems
+  def longestMatchIsAcceptedByMatchOrIsEmpty[C](
+      nfa: NFA[C],
+      input: List[C]
+  ): Unit = {
+    require(validNFA(nfa))
+
+  } ensuring (findLongestMatchInner(nfa, List(nfa.startState), Nil(), input)._1.isEmpty || matchNFA(nfa, findLongestMatchInner(nfa, List(nfa.startState), Nil(), input)._1))
+
+  // def longestMatchIsAcceptedByMatchOrIsEmptyInner[C](
+  //     nfa: NFA[C],
+  //     inputSuffix: List[C],
+  //     matchedP: List[C],
+  //     seenChars: List[C],
+  //     startStates: List[State]
+  // ): Unit = {
+  //   require(validNFA(nfa))
+  //   require(ListOps.noDuplicate(startStates))
+  //   require(
+  //     startStates.forall(s =>
+  //       transitionsStates(nfa.transitions).contains(s) || nfa.startStates
+  //         .contains(s)
+  //     )
+  //   )
+  //   // require({
+  //   //   ListUtils.lemmaSubseqRefl(nfa.startStates)
+  //   //   lemmaNfaStartStatesForallContainsStatesOrStartStates(nfa, nfa.startStates)
+  //   //   moveMultipleSteps(nfa, nfa.startStates, seenChars) == startStates
+  //   // })
+  //   require({
+  //     ListUtils.lemmaSubseqRefl(nfa.startStates)
+  //     lemmaNfaStartStatesForallContainsStatesOrStartStates(nfa, nfa.startStates)
+  //     findLongestMatchInner(
+  //       nfa,
+  //       startStates,
+  //       seenChars,
+  //       inputSuffix
+  //     )._1 == matchedP
+  //   })
+
+  //   decreases(inputSuffix.size)
+  //   if (inputSuffix.isEmpty) {
+  //     if (
+  //       !nfa.finalStates
+  //         .map(s => startStates.contains(s))
+  //         .filter(_ == true)
+  //         .isEmpty
+  //     ) {
+  //       ListUtils.lemmaConcatTwoListThenFirstIsPrefix(seenChars, inputSuffix)
+  //       check(ListUtils.isPrefix(seenChars, seenChars ++ inputSuffix))
+  //       assert(
+  //         findLongestMatchInner(
+  //           nfa,
+  //           startStates,
+  //           seenChars,
+  //           inputSuffix
+  //         ) == (seenChars, inputSuffix)
+  //       )
+  //       assert(matchedP == seenChars)
+  //       // (pastChars, suffix)
+  //     } else {
+  //       assert(matchedP.isEmpty)
+  //       // (Nil(), pastChars)
+  //     }
+  //   } else {
+  //     if (seenChars == matchedP) {
+  //       ()
+  //     } else {
+  //       if (matchedP.isEmpty) {
+  //         ()
+  //       } else {
+  //         assert(
+  //           findLongestMatchInner(
+  //             nfa,
+  //             startStates,
+  //             seenChars,
+  //             inputSuffix
+  //           )._1 == matchedP
+  //         )
+  //         assert(seenChars.size <= matchedP.size)
+  //         if (seenChars.size == matchedP.size) {
+  //           ListUtils.lemmaIsPrefixSameLengthThenSameList(
+  //             matchedP,
+  //             seenChars,
+  //             seenChars ++ inputSuffix
+  //           )
+  //         }
+  //         assert(seenChars.size < matchedP.size)
+  //       }
+  //     }
+
+  //   }
+
+  // } ensuring (matchedP.isEmpty || matchNFA(nfa, matchedP))
+
+  // @opaque
+  // def lemmaFromStartOrFromMultipleStepsForwardWithSmallerPrefixSame[C](
+  //     nfa: NFA[C],
+  //     resultP: List[C],
+  //     resultSuffix: List[C],
+  //     smallerP: List[C],
+  //     biggerSuffix: List[C]
+  // ): Unit = {
+  //   require(validNFA(nfa))
+  //   require(ListUtils.isPrefix(smallerP, resultP))
+  //   require(smallerP ++ biggerSuffix == resultP ++ resultSuffix)
+  //   require({
+  //     ListUtils.lemmaSubseqRefl(nfa.startStates)
+  //     lemmaNfaStartStatesForallContainsStatesOrStartStates(nfa, nfa.startStates)
+  //     findLongestMatchInner(
+  //       nfa,
+  //       nfa.startStates,
+  //       Nil(),
+  //       resultP ++ resultSuffix
+  //     )._1 == resultP
+  //   })
+  //   require({
+  //     ListUtils.lemmaSubseqRefl(nfa.startStates)
+  //     lemmaNfaStartStatesForallContainsStatesOrStartStates(nfa, nfa.startStates)
+  //     findLongestMatchInner(
+  //       nfa,
+  //       nfa.startStates,
+  //       Nil(),
+  //       resultP ++ resultSuffix
+  //     )._2 == resultSuffix
+  //   })
+  //   decreases(smallerP.size)
+
+  //   if (smallerP.isEmpty) {
+  //     ()
+  //   } else {
+  //     if (smallerP.size == resultP.size) {
+  //       ListUtils.lemmaIsPrefixRefl(resultP, resultP)
+  //       ListUtils.lemmaIsPrefixSameLengthThenSameList(
+  //         smallerP,
+  //         resultP,
+  //         resultP
+  //       )
+  //       // unfold(
+  //       //   findLongestMatchInner(
+  //       //     nfa,
+  //       //     moveMultipleSteps(nfa, nfa.startStates, smallerP),
+  //       //     smallerP,
+  //       //     biggerSuffix
+  //       //   )
+  //       // )
+  //       // check(
+  //       //   findLongestMatchInner(
+  //       //     nfa,
+  //       //     moveMultipleSteps(nfa, nfa.startStates, smallerP),
+  //       //     smallerP,
+  //       //     biggerSuffix
+  //       //   )._1 == resultP
+  //       // )
+  //     } else {
+  //       val newSmallerP = smallerP ++ List(biggerSuffix.head)
+  //       val newBiggerSuffix = biggerSuffix.tail
+  //       check(
+  //         findLongestMatchInner(
+  //           nfa,
+  //           moveMultipleSteps(nfa, nfa.startStates, smallerP),
+  //           smallerP,
+  //           biggerSuffix
+  //         )._1 == resultP
+  //       )
+  //     }
+  //     // val newSmallerP = ListUtils.removeLast(smallerP)
+  //     // val newBigSuffix = Cons(smallerP.last, biggerSuffix)
+  //     // ListUtils.lemmaRemoveLastConcatenatedPrefixStillPrefix(newSmallerP, smallerP.last, resultP)
+  //     // assert(ListUtils.isPrefix(newSmallerP, resultP))
+
+  //     // ListUtils.lemmaConcatAssociativity(newSmallerP, smallerP.last, biggerSuffix, resultP ++ resultSuffix)
+  //     // assert(newSmallerP ++ newBigSuffix == resultP ++ resultSuffix)
+  //     // lemmaFromStartOrFromMultipleStepsForwardWithSmallerPrefixSame(nfa, resultP, resultSuffix, newSmallerP, newBigSuffix)
+  //     // // assert(
+  //     // //   findLongestMatchInner(nfa, moveMultipleSteps(nfa, nfa.startStates, newSmallerP), newSmallerP, newBigSuffix) ==
+  //     // //     findLongestMatchInner(nfa, moveMultipleSteps(nfa, nfa.startStates, smallerP), smallerP, biggerSuffix)
+  //     // // )
+  //     // assert(moveOneStep(nfa, moveMultipleSteps(nfa, nfa.startStates, newSmallerP), smallerP.last) == moveMultipleSteps(nfa, nfa.startStates, smallerP))
+  //     // assert(newSmallerP ++ List(smallerP.last) == smallerP)
+
+  //     // assert(findLongestMatchInner(nfa, moveMultipleSteps(nfa, nfa.startStates, newSmallerP), newSmallerP, newBigSuffix)._1 == resultP)
+  //     // assert(
+  //     //   findLongestMatchInner(nfa, moveOneStep(nfa, moveMultipleSteps(nfa, nfa.startStates, newSmallerP), smallerP.last), smallerP, biggerSuffix) ==
+  //     //     findLongestMatchInner(nfa, moveMultipleSteps(nfa, nfa.startStates, newSmallerP), newSmallerP, newBigSuffix)
+  //     // ) // TODO
+  //   }
+
+  // } ensuring (findLongestMatchInner(
+  //   nfa,
+  //   moveMultipleSteps(nfa, nfa.startStates, smallerP),
+  //   smallerP,
+  //   biggerSuffix
+  // )._1 == resultP)
+
+  // def lemmaFromAPrefixIsSameAsOneStepBehind[C](nfa: NFA[C], seenChars:List[C], remainingChars: List[C], resultP: List[C], resultSuffix: List[C]): Unit = {
+  //   require(seenChars ++ remainingChars == resultP ++ resultSuffix)
+  //   require(findLongestMatchInner(nfa, moveMultipleSteps(nfa, nfa.startStates, seenChars), seenChars, remainingChars)._1 == resultP)
+  //   require(findLongestMatchInner(nfa, moveMultipleSteps(nfa, nfa.startStates, seenChars), seenChars, remainingChars)._2 == resultSuffix)
+  // } ensuring(findLongestMatchInner(nfa, moveMultipleSteps(nfa, nfa.startStates, seenChars), seenChars, remainingChars) ==
+  //   findLongestMatchInner(nfa, moveOneStep(moveMultipleSteps(nfa, nfa.startStates, seenChars), seenChars, remainingChars))
+
+  // def lemmaNfaStartStatesForallContainsStatesOrStartStates[C](
+  //     nfa: NFA[C],
+  //     l: List[State]
+  // ): Unit = {
+  //   require(validNFA(nfa))
+  //   require(ListSpecs.subseq(l, nfa.startState))
+
+  // } ensuring (l.forall(s =>
+  //   transitionsStates(nfa.transitions).contains(s) || nfa.startStates
+  //     .contains(s)
+  // ))
+
   def longestMatchNoBiggerStringMatch[C](
       baseNfa: NFA[C],
       input: List[C],
@@ -1111,36 +1424,6 @@ object VerifiedNFAMatcher {
     require(ListUtils.isPrefix(returnP, input))
     require(ListUtils.isPrefix(bigger, input))
     require(bigger.size >= returnP.size)
-    require(
-      findLongestMatchInner(
-        baseNfa,
-        baseNfa.startState,
-        Nil(),
-        input,
-        Nil()
-      )._1 == returnP
-    )
-
-    if (bigger.size == returnP.size) {
-      ListUtils.lemmaIsPrefixSameLengthThenSameList(bigger, returnP, input)
-    } else {
-      // if (matchR(baseR, bigger)) {
-      //   lemmaKnownAcceptedStringThenFromSmallPAtLeastThat(baseR, baseR, input, Nil(), bigger)
-      //   check(false)
-      // }
-    }
-
+    require(findLongestMatchInner(baseNfa, List(baseNfa.startState), Nil(), input)._1 == returnP)
   } ensuring (bigger == returnP || !matchNFA(baseNfa, bigger))
-
-  // Regex equivalence theorem
-  @extern
-  def equivalenceTheorem[C](r: Regex[C], s: List[C]): Unit = {
-    require(validRegex(r))
-    assume(
-      findLongestMatch(fromRegexToNfa(r), s) == VerifiedRegexMatcher
-        .findLongestMatch(r, s)
-    )
-  } ensuring (findLongestMatch(fromRegexToNfa(r), s) == VerifiedRegexMatcher
-    .findLongestMatch(r, s))
-
 }
