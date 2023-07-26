@@ -12,7 +12,7 @@ object RegularExpression {
   abstract sealed class Regex[C] {}
   def validRegex[C](r: Regex[C]): Boolean = r match {
     case ElementMatch(c)    => true
-    case Star(r)            => validRegex(r)
+    case Star(r)            => !nullable(r) && !isEmptyLang(r) && validRegex(r)
     case Union(rOne, rTwo)  => validRegex(rOne) && validRegex(rTwo)
     case Concat(rOne, rTwo) => validRegex(rOne) && validRegex(rTwo)
     case EmptyExpr()        => true
@@ -26,7 +26,7 @@ object RegularExpression {
     case Concat(rOne, rTwo) => BigInt(1) + Utils.maxBigInt(regexDepth(rOne), regexDepth(rTwo))
     case EmptyExpr()        => BigInt(1)
     case EmptyLang()        => BigInt(1)
-  }
+  } ensuring (res => res > 0)
 
   case class ElementMatch[C](c: C) extends Regex[C]
   case class Star[C](reg: Regex[C]) extends Regex[C]
@@ -40,11 +40,6 @@ object RegularExpression {
   /** Regex that accepts nothing: represents the empty language
     */
   case class EmptyLang[C]() extends Regex[C]
-}
-
-object VerifiedRegexMatcher {
-  import RegularExpression._
-  import ListUtils._
 
   def usedCharacters[C](r: Regex[C]): List[C] = {
     r match {
@@ -79,6 +74,19 @@ object VerifiedRegexMatcher {
       case Concat(rOne, rTwo) => nullable(rOne) && nullable(rTwo)
     }
   }
+
+  @inline
+  def isEmptyLang[C](r: Regex[C]): Boolean = {
+    r match {
+      case EmptyLang() => true
+      case _           => false
+    }
+  }
+}
+
+object VerifiedRegexMatcher {
+  import RegularExpression._
+  import ListUtils._
 
   def derivativeStep[C](r: Regex[C], a: C): Regex[C] = {
     require(validRegex(r))
@@ -117,6 +125,108 @@ object VerifiedRegexMatcher {
       case _ => true
     }
   )
+
+  def matchRSpec[C](r: Regex[C], s: List[C]): Boolean = {
+    require(validRegex(r))
+    r match {
+      case EmptyExpr()     => s.isEmpty
+      case EmptyLang()     => false
+      case ElementMatch(c) => s == List(c)
+      case Union(r1, r2)   => matchRSpec(r1, s) || matchRSpec(r2, s)
+      case Star(rInner)    => s.isEmpty || findConcatSeparation(rInner, Star(rInner), Nil(), s, s).isDefined
+      case Concat(r1, r2)  => findConcatSeparation(r1, r2, Nil(), s, s).isDefined
+    }
+  }
+
+  def mainMatchTheorem[C](r: Regex[C], s: List[C]): Unit = {
+    require(validRegex(r))
+    decreases(s.size + regexDepth(r))
+    r match {
+      case EmptyExpr()     => ()
+      case EmptyLang()     => ()
+      case ElementMatch(c) => ()
+      case Union(r1, r2) => {
+        if (matchR(r, s)) {
+          lemmaRegexUnionAcceptsThenOneOfTheTwoAccepts(r1, r2, s)
+          mainMatchTheorem(r1, s)
+          mainMatchTheorem(r2, s)
+        } else {
+          if (matchR(r1, s)) {
+            lemmaRegexAcceptsStringThenUnionWithAnotherAcceptsToo(r1, r2, s)
+            check(false)
+          }
+          if (matchR(r2, s)) {
+            lemmaRegexAcceptsStringThenUnionWithAnotherAcceptsToo(r2, r1, s)
+            lemmaReversedUnionAcceptsSameString(r2, r1, s)
+            check(false)
+          }
+          mainMatchTheorem(r1, s)
+          mainMatchTheorem(r2, s)
+        }
+
+      }
+      case Star(rInner) => {
+        if (s.isEmpty) {
+          ()
+        } else {
+          val cut = findConcatSeparation(rInner, Star(rInner), Nil(), s, s)
+          if (cut.isDefined) {
+            mainMatchTheorem(rInner, cut.get._1)
+            mainMatchTheorem(Star(rInner), cut.get._2)
+            if (!matchR(r, s)) {
+              lemmaFindSeparationIsDefinedThenConcatMatches(rInner, Star(rInner), cut.get._1, cut.get._2, s)
+              check(false)
+            }
+          } else {
+            if (matchR(r, s)) {
+              lemmaStarAppConcat(rInner, s)
+              lemmaConcatAcceptsStringThenFindSeparationIsDefined(rInner, Star(rInner), s)
+              check(false)
+            }
+          }
+        }
+      }
+      case Concat(r1, r2) => {
+        if (matchR(r, s)) {
+          lemmaConcatAcceptsStringThenFindSeparationIsDefined(r1, r2, s)
+        } else {
+          val cut = findConcatSeparation(r1, r2, Nil(), s, s)
+          if (cut.isDefined) {
+            lemmaFindSeparationIsDefinedThenConcatMatches(r1, r2, cut.get._1, cut.get._2, s)
+            check(false)
+          }
+        }
+
+      }
+    }
+  } ensuring (matchR(r, s) == matchRSpec(r, s))
+
+  /** Enumerate all cuts in s and returns one that works, i.e., r1 matches s1 and r2 matches s2 Specifically, it is the right most one, i.e., s2 is the largest, if multiple exists Returns None is no valid cut exists
+    *
+    * @param r1
+    * @param r2
+    * @param s1
+    * @param s2
+    * @param s
+    */
+  def findConcatSeparation[C](r1: Regex[C], r2: Regex[C], s1: List[C], s2: List[C], s: List[C]): Option[(List[C], List[C])] = {
+    require(validRegex(r1))
+    require(validRegex(r2))
+    require(s1 ++ s2 == s)
+    decreases(s2.size)
+
+    val res: Option[(List[C], List[C])] = (s1, s2) match {
+      case (_, _) if matchR(r1, s1) && matchR(r2, s2) => Some((s1, s2))
+      case (_, Nil())                                 => None()
+      case (_, Cons(hd2, tl2)) => {
+        lemmaMoveElementToOtherListKeepsConcatEq(s1, hd2, tl2, s)
+        assert(s1 ++ List(hd2) ++ tl2 == s)
+        findConcatSeparation(r1, r2, s1 ++ List(hd2), tl2, s)
+      }
+    }
+    res
+
+  } ensuring (res => (res.isDefined && matchR(r1, res.get._1) && matchR(r2, res.get._2) && res.get._1 ++ res.get._2 == s) || !res.isDefined)
 
   @inline
   def findLongestMatch[C](r: Regex[C], input: List[C]): (List[C], List[C]) = {
@@ -373,25 +483,6 @@ object VerifiedRegexMatcher {
 
   // Concat lemmas
 
-  def findConcatSeparation[C](r1: Regex[C], r2: Regex[C], s1: List[C], s2: List[C], s: List[C]): Option[(List[C], List[C])] = {
-    require(validRegex(r1))
-    require(validRegex(r2))
-    require(s1 ++ s2 == s)
-    decreases(s2.size)
-
-    val res: Option[(List[C], List[C])] = (s1, s2) match {
-      case (_, _) if matchR(r1, s1) && matchR(r2, s2) => Some((s1, s2))
-      case (_, Nil())                                 => None()
-      case (_, Cons(hd2, tl2)) => {
-        lemmaMoveElementToOtherListKeepsConcatEq(s1, hd2, tl2, s)
-        assert(s1 ++ List(hd2) ++ tl2 == s)
-        findConcatSeparation(r1, r2, s1 ++ List(hd2), tl2, s)
-      }
-    }
-    res
-
-  } ensuring (res => (res.isDefined && matchR(r1, res.get._1) && matchR(r2, res.get._2) && res.get._1 ++ res.get._2 == s) || !res.isDefined)
-
   def lemmaRegexConcatWithNullableAcceptsSameStr[C](
       r1: Regex[C],
       r2: Regex[C],
@@ -579,6 +670,23 @@ object VerifiedRegexMatcher {
       case Nil() => ()
     }
   } ensuring (matchR(Star(r), s1 ++ s2))
+
+  def lemmaStarAppConcat[C](r: Regex[C], s: List[C]): Unit = {
+    require(validRegex(Star(r)))
+    require(matchR(Star(r), s))
+
+    s match {
+      case Cons(hd, tl) => {
+        assert(derivativeStep(Star(r), hd) == Concat(derivativeStep(r, hd), Star(r)))
+        val r1 = derivativeStep(r, hd)
+        val r2 = Star(r)
+        lemmaConcatAcceptsStringThenFindSeparationIsDefined(r1, r2, tl)
+        val cut = findConcatSeparation(r1, r2, Nil(), tl, tl)
+        lemmaTwoRegexMatchThenConcatMatchesConcatString(r, Star(r), Cons(hd, cut.get._1), cut.get._2)
+      }
+      case Nil() => ()
+    }
+  } ensuring (s.isEmpty || matchR(Concat(r, Star(r)), s))
 
   // usedCharacters lemmas ---------------------------------------------------------------------------------------------------
 
