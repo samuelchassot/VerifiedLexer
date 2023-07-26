@@ -265,9 +265,9 @@ object VerifiedNFA {
         ListUtils.lemmaSubSeqTransitive(allStates, statesAfter2, newAllStates)
 
         assert(statesAfter2.contains(errorState))
-        assert(stout != errorState)
+        assert(stout != errorState) // takes up to 30sec to z3
         assert(Cons(stout, statesAfter2).contains(errorState))
-        assert(ste != errorState)
+        assert(ste != errorState) // takes up to 30sec to z3
 
         lemmaAddTransitionNotFromErrorStatePreserves(transitionsAfter2, t4, errorState)
         lemmaAddTransitionNotFromErrorStatePreserves(Cons(t4, transitionsAfter2), t3, errorState)
@@ -278,11 +278,11 @@ object VerifiedNFA {
         ListUtils.lemmaForallContainsAddingInSndListPreserves(transitionsStates(transitionsAfter2), Cons(stout, statesAfter2), ste)
 
         lemmaAddNewTransitionPreservesForallStatesContainedIfAddingStates(transitionsAfter2, t4, stout2, stout, statesAfter2)
-        lemmaAddNewTransitionPreservesForallStatesContainedIfAddingStates(Cons(t4, transitionsAfter2), t3, stout1, stout, Cons(stout, statesAfter2))
+        lemmaAddNewTransitionPreservesForallStatesContainedIfAddingStates(Cons(t4, transitionsAfter2), t3, stout1, stout, Cons(stout, statesAfter2)) // precond takes up to 30sec to z3
         lemmaAddNewTransitionPreservesForallStatesContainedIfAddingStates(Cons(t3, Cons(t4, transitionsAfter2)), t2, ste, ste2, Cons(stout, statesAfter2))
         assert(Cons(stout, statesAfter2).contains(ste1))
-        assert(!Cons(stout, statesAfter2).contains(ste))
-        assert(transitionsStates(Cons(t3, Cons(t4, transitionsAfter2))).forall(s => Cons(ste, Cons(stout, statesAfter2)).contains(s)))
+        assert(!Cons(stout, statesAfter2).contains(ste)) // takes up to 30sec to z3
+        assert(transitionsStates(Cons(t3, Cons(t4, transitionsAfter2))).forall(s => Cons(ste, Cons(stout, statesAfter2)).contains(s))) // takes up to 30sec to z3
         lemmaAddNewTransitionPreservesForallStatesContainedIfAddingStates(Cons(t2, Cons(t3, Cons(t4, transitionsAfter2))), t1, ste, ste1, Cons(ste, Cons(stout, statesAfter2)))
 
         // LEMMAS --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -335,18 +335,18 @@ object VerifiedNFA {
 
         lemmaAddNewTransitionPreservesForallStatesContainedIfAddingStates(transitionsAfter2, t3, stout1, ste2, statesAfter2)
         lemmaAddNewTransitionPreservesForallStatesContainedIfAddingStates(Cons(t3, transitionsAfter2), t2, stout2, stout, statesAfter2)
-        lemmaAddNewTransitionPreservesForallStatesContainedIfAddingStates(Cons(t2, Cons(t3, transitionsAfter2)), t1, ste, ste1, Cons(stout, statesAfter2))
+        lemmaAddNewTransitionPreservesForallStatesContainedIfAddingStates(Cons(t2, Cons(t3, transitionsAfter2)), t1, ste, ste1, Cons(stout, statesAfter2)) // precond takes up to 30sec to z3
 
         // LEMMAS --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
         assert(ListSpecs.noDuplicate(newAllStates))
-        assert(ListSpecs.subseq(allStates, newAllStates))
+        assert(ListSpecs.subseq(allStates, newAllStates)) // takes up to 30sec to z3
         assert(newAllStates.contains(ste))
         assert(newAllStates.contains(errorState))
-        assert(newAllStates.contains(stout))
+        assert(newAllStates.contains(stout)) // takes up to 30sec to z3
         assert(transitionsStates(newTransitions).forall(s => newAllStates.contains(s)))
         assert(noTransitionOutOfErrorState(newTransitions, errorState))
-        assert(stout != errorState)
+        assert(stout != errorState) // takes up to 30sec to z3
 
         (ste, newAllStates, newTransitions, stout)
       }

@@ -658,7 +658,7 @@ object VerifiedRegexMatcher {
   } ensuring (matchR(r, List()))
 
   def lemmaStarApp[C](r: Regex[C], s1: List[C], s2: List[C]): Unit = {
-    require(validRegex(r))
+    require(validRegex(Star(r)))
     require(matchR(r, s1))
     require(matchR(Star(r), s2))
 
