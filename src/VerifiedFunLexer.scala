@@ -26,6 +26,37 @@ object MainTest {
     // Regex to NFA tests
     val state = State(BigInt(1))
     NFATests()(state)
+    // NFAMatchManual()(state)
+
+  }
+  @extern
+  def NFAMatchManual()(implicit @ghost state: State): Unit = {
+    val r = Star(ElementMatch('a'))
+    val nfa = fromRegexToNfa(r)
+    println("Epsilon closure from 4: " + epsilonClosure(nfa, List(VerifiedNFA.State(4))))
+    println("Epsilon closure from epsilon from 4: " + epsilonClosure(nfa, epsilonClosure(nfa, List(VerifiedNFA.State(4)))))
+
+    val input = List('a')
+    val suffix = input
+    val pastChars = Nil[Char]()
+    val currentStatesEpsilonClosure = epsilonClosure(nfa, List(nfa.startState), Nil())
+
+    println("CLOSURE 1: " + currentStatesEpsilonClosure)
+
+    val nextChar = suffix.head
+    val newPastChars = pastChars ++ List(nextChar)
+    val newSuffix = suffix.tail
+    val afterConsumingNextChar = readOneChar(nfa, nfa.transitions, currentStatesEpsilonClosure, nextChar)
+
+    assert(afterConsumingNextChar.forall(s => nfa.allStates.contains(s)))
+
+    println("AFTER Consuming char " + nextChar + " : " + afterConsumingNextChar)
+
+    val afterEpsilon = epsilonClosure(nfa, afterConsumingNextChar)
+
+    println("CLOSURE 2: " + afterEpsilon)
+
+    println("MATCH FUCNTION: " + matchNFA(nfa, input))
 
   }
   @extern
@@ -166,7 +197,6 @@ object MainTest {
     println("closure TESTS RESULT 2 = " + testNfaEpsilonClosureClosed(r2))
     println("closure TESTS RESULT 3 = " + testNfaEpsilonClosureClosed(r3))
     println("closure TESTS RESULT 4 = " + testNfaEpsilonClosureClosed(r4))
-
   }
 
 }
