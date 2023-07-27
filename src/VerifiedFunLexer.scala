@@ -8,6 +8,7 @@ import stainless.lang._
 import stainless.proof.check
 import scala.annotation.tailrec
 import scala.collection.immutable.Range.BigInt.apply
+import VerifiedNFAMatcher.epsilonClosure
 
 object MainTest {
   import VerifiedFunLexer._
@@ -29,6 +30,19 @@ object MainTest {
   }
   @extern
   def NFATests()(implicit @ghost state: State): Unit = {
+    def testNfaEpsilonClosureClosed(r: Regex[Char])(implicit
+        @ghost state: State
+    ): Boolean = {
+      val nfa = fromRegexToNfa(r)
+      val states = nfa.allStates
+      states
+        .map(s => {
+          val epsilonFromS = epsilonClosure(nfa, List(s), Nil())
+          val again = epsilonClosure(nfa, epsilonFromS, Nil())
+          epsilonFromS.content == again.content
+        })
+        .foldLeft(true)((a, b) => a && b)
+    }
     def testNfaMatch(testValues: List[List[Char]], r: Regex[Char])(implicit
         @ghost state: State
     ): Boolean = {
@@ -62,7 +76,7 @@ object MainTest {
     }
     val r1 = Star(
       Union(
-        Star(Concat(ElementMatch('a'), ElementMatch('b'))),
+        Concat(Concat(ElementMatch('a'), ElementMatch('b')), Star(Concat(ElementMatch('a'), ElementMatch('b')))),
         Concat(ElementMatch('c'), Concat(ElementMatch('d'), ElementMatch('e')))
       )
     )
@@ -83,8 +97,11 @@ object MainTest {
 
     val r2 = Star(
       Union(
-        Star(
-          Union(Concat(ElementMatch('a'), ElementMatch('b')), ElementMatch('f'))
+        Concat(
+          Union(Concat(ElementMatch('a'), ElementMatch('b')), ElementMatch('f')),
+          Star(
+            Union(Concat(ElementMatch('a'), ElementMatch('b')), ElementMatch('f'))
+          )
         ),
         Concat(ElementMatch('c'), Concat(ElementMatch('d'), ElementMatch('e')))
       )
@@ -142,6 +159,14 @@ object MainTest {
     println("TESTS RESULT 2 = " + testResult2.toString)
     println("TESTS RESULT 3 = " + testResult3.toString)
     println("TESTS RESULT 4 = " + testResult4.toString)
+
+    println("TESTS NFA EPSILON CLOSURE")
+
+    println("closure TESTS RESULT 1 = " + testNfaEpsilonClosureClosed(r1))
+    println("closure TESTS RESULT 2 = " + testNfaEpsilonClosureClosed(r2))
+    println("closure TESTS RESULT 3 = " + testNfaEpsilonClosureClosed(r3))
+    println("closure TESTS RESULT 4 = " + testNfaEpsilonClosureClosed(r4))
+
   }
 
 }
