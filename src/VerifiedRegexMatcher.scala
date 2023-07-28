@@ -26,7 +26,14 @@ object RegularExpression {
     case Concat(rOne, rTwo) => BigInt(1) + Utils.maxBigInt(regexDepth(rOne), regexDepth(rTwo))
     case EmptyExpr()        => BigInt(1)
     case EmptyLang()        => BigInt(1)
-  } ensuring (res => res > 0)
+  } ensuring (res =>
+    res > 0 && (r match {
+      case Union(rOne, rTwo)  => res > regexDepth(rOne) && res > regexDepth(rTwo)
+      case Concat(rOne, rTwo) => res > regexDepth(rOne) && res > regexDepth(rTwo)
+      case Star(r)            => res > regexDepth(r)
+      case _                  => res == BigInt(1)
+    })
+  )
 
   case class ElementMatch[C](c: C) extends Regex[C]
   case class Star[C](reg: Regex[C]) extends Regex[C]

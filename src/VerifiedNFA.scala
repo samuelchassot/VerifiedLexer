@@ -1,10 +1,9 @@
 /** Author: Samuel Chassot
   */
 
-import stainless.equations._
-import stainless.lang._
 import stainless.collection._
 import stainless.annotation._
+import stainless.lang._
 import stainless.proof._
 import VerifiedNFA.LabeledTransition
 
@@ -180,6 +179,7 @@ object VerifiedNFA {
     require(allStates.contains(errorState))
     require(transitionsStates(transitions).forall(s => allStates.contains(s)))
     require(noTransitionOutOfErrorState(transitions, errorState))
+    decreases(regexDepth(regex))
 
     regex match {
       case EmptyLang() => {
@@ -241,6 +241,8 @@ object VerifiedNFA {
 
         ListSpecs.subseqContains(allStates, statesAfter1, errorState)
 
+        assert(regexDepth(r2) < regexDepth(Union(r1, r2)))
+
         val (ste2, statesAfter2, transitionsAfter2, stout2) = go(r2)(statesAfter1, transitionsAfter1, errorState)
 
         val stout = getFreshState(statesAfter2)
@@ -255,19 +257,30 @@ object VerifiedNFA {
         // LEMMAS --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
         ListUtils.lemmaSubSeqTransitive(allStates, statesAfter1, statesAfter2)
-        ListSpecs.subseqContains(statesAfter1, statesAfter2, ste1)
-        ListSpecs.subseqContains(statesAfter1, statesAfter2, stout1)
         ListUtils.lemmaTailIsSubseqOfList(stout, statesAfter2)
         ListUtils.lemmaTailIsSubseqOfListBis(newAllStates)
-        ListSpecs.subseqContains(statesAfter2, Cons(stout, statesAfter2), ste2)
-        ListSpecs.subseqContains(statesAfter2, Cons(stout, statesAfter2), errorState)
         ListUtils.lemmaSubSeqTransitive(statesAfter2, Cons(stout, statesAfter2), newAllStates)
         ListUtils.lemmaSubSeqTransitive(allStates, statesAfter2, newAllStates)
 
+        ListSpecs.subseqContains(statesAfter1, statesAfter2, ste1)
+        ListSpecs.subseqContains(statesAfter1, statesAfter2, stout1)
+        ListSpecs.subseqContains(statesAfter2, Cons(stout, statesAfter2), ste1)
+        ListSpecs.subseqContains(statesAfter2, Cons(stout, statesAfter2), stout1)
+        ListSpecs.subseqContains(statesAfter2, Cons(stout, statesAfter2), ste2)
+        ListSpecs.subseqContains(statesAfter2, Cons(stout, statesAfter2), stout2)
+        ListSpecs.subseqContains(statesAfter2, Cons(stout, statesAfter2), errorState)
+        ListSpecs.subseqContains(Cons(stout, statesAfter2), newAllStates, stout)
+        ListSpecs.subseqContains(Cons(stout, statesAfter2), newAllStates, ste1)
+        ListSpecs.subseqContains(Cons(stout, statesAfter2), newAllStates, stout1)
+        ListSpecs.subseqContains(Cons(stout, statesAfter2), newAllStates, ste2)
+        ListSpecs.subseqContains(Cons(stout, statesAfter2), newAllStates, stout2)
+        ListSpecs.subseqContains(Cons(stout, statesAfter2), newAllStates, errorState)
+
         assert(statesAfter2.contains(errorState))
-        assert(stout != errorState) // takes up to 30sec to z3
+        assert(!statesAfter2.contains(stout))
+        assert(stout != errorState)
         assert(Cons(stout, statesAfter2).contains(errorState))
-        assert(ste != errorState) // takes up to 30sec to z3
+        assert(ste != errorState)
 
         lemmaAddTransitionNotFromErrorStatePreserves(transitionsAfter2, t4, errorState)
         lemmaAddTransitionNotFromErrorStatePreserves(Cons(t4, transitionsAfter2), t3, errorState)
@@ -278,11 +291,13 @@ object VerifiedNFA {
         ListUtils.lemmaForallContainsAddingInSndListPreserves(transitionsStates(transitionsAfter2), Cons(stout, statesAfter2), ste)
 
         lemmaAddNewTransitionPreservesForallStatesContainedIfAddingStates(transitionsAfter2, t4, stout2, stout, statesAfter2)
-        lemmaAddNewTransitionPreservesForallStatesContainedIfAddingStates(Cons(t4, transitionsAfter2), t3, stout1, stout, Cons(stout, statesAfter2)) // precond takes up to 30sec to z3
+        lemmaAddNewTransitionPreservesForallStatesContainedIfAddingStates(Cons(t4, transitionsAfter2), t3, stout1, stout, Cons(stout, statesAfter2))
         lemmaAddNewTransitionPreservesForallStatesContainedIfAddingStates(Cons(t3, Cons(t4, transitionsAfter2)), t2, ste, ste2, Cons(stout, statesAfter2))
+
         assert(Cons(stout, statesAfter2).contains(ste1))
-        assert(!Cons(stout, statesAfter2).contains(ste)) // takes up to 30sec to z3
-        assert(transitionsStates(Cons(t3, Cons(t4, transitionsAfter2))).forall(s => Cons(ste, Cons(stout, statesAfter2)).contains(s))) // takes up to 30sec to z3
+        assert(!Cons(stout, statesAfter2).contains(ste))
+
+        assert(transitionsStates(Cons(t2, Cons(t3, Cons(t4, transitionsAfter2)))).forall(s => Cons(ste, Cons(stout, statesAfter2)).contains(s))) // takes up to 40sec to z3
         lemmaAddNewTransitionPreservesForallStatesContainedIfAddingStates(Cons(t2, Cons(t3, Cons(t4, transitionsAfter2))), t1, ste, ste1, Cons(ste, Cons(stout, statesAfter2)))
 
         // LEMMAS --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -322,12 +337,28 @@ object VerifiedNFA {
         // LEMMAS --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
         ListUtils.lemmaSubSeqTransitive(allStates, statesAfter1, statesAfter2)
+        ListUtils.lemmaTailIsSubseqOfList(stout, statesAfter2)
+        ListUtils.lemmaTailIsSubseqOfListBis(newAllStates)
+        ListUtils.lemmaSubSeqTransitive(statesAfter2, Cons(stout, statesAfter2), newAllStates)
+        ListUtils.lemmaSubSeqTransitive(allStates, statesAfter2, newAllStates)
+
         ListSpecs.subseqContains(statesAfter1, statesAfter2, ste1)
         ListSpecs.subseqContains(statesAfter1, statesAfter2, stout1)
-        ListUtils.lemmaTailIsSubseqOfList(stout, statesAfter2)
+        ListSpecs.subseqContains(statesAfter2, Cons(stout, statesAfter2), ste1)
+        ListSpecs.subseqContains(statesAfter2, Cons(stout, statesAfter2), stout1)
         ListSpecs.subseqContains(statesAfter2, Cons(stout, statesAfter2), ste2)
         ListSpecs.subseqContains(statesAfter2, Cons(stout, statesAfter2), stout2)
         ListSpecs.subseqContains(statesAfter2, Cons(stout, statesAfter2), errorState)
+        ListSpecs.subseqContains(Cons(stout, statesAfter2), newAllStates, stout)
+        ListSpecs.subseqContains(Cons(stout, statesAfter2), newAllStates, ste1)
+        ListSpecs.subseqContains(Cons(stout, statesAfter2), newAllStates, stout1)
+        ListSpecs.subseqContains(Cons(stout, statesAfter2), newAllStates, ste2)
+        ListSpecs.subseqContains(Cons(stout, statesAfter2), newAllStates, stout2)
+        ListSpecs.subseqContains(Cons(stout, statesAfter2), newAllStates, errorState)
+
+        assert(statesAfter2.contains(errorState))
+        assert(!statesAfter2.contains(stout))
+        assert(stout != errorState)
 
         lemmaAddTransitionNotFromErrorStatePreserves(transitionsAfter2, t3, errorState)
         lemmaAddTransitionNotFromErrorStatePreserves(Cons(t3, transitionsAfter2), t2, errorState)
@@ -335,18 +366,20 @@ object VerifiedNFA {
 
         lemmaAddNewTransitionPreservesForallStatesContainedIfAddingStates(transitionsAfter2, t3, stout1, ste2, statesAfter2)
         lemmaAddNewTransitionPreservesForallStatesContainedIfAddingStates(Cons(t3, transitionsAfter2), t2, stout2, stout, statesAfter2)
-        lemmaAddNewTransitionPreservesForallStatesContainedIfAddingStates(Cons(t2, Cons(t3, transitionsAfter2)), t1, ste, ste1, Cons(stout, statesAfter2)) // precond takes up to 30sec to z3
+        lemmaAddNewTransitionPreservesForallStatesContainedIfAddingStates(Cons(t2, Cons(t3, transitionsAfter2)), t1, ste, ste1, Cons(stout, statesAfter2))
 
-        // LEMMAS --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+        ListUtils.noDuplicateConcatNotContainedPreserves(statesAfter2, stout)
+        ListUtils.noDuplicateConcatNotContainedPreserves(Cons(stout, statesAfter2), ste)
         assert(ListSpecs.noDuplicate(newAllStates))
-        assert(ListSpecs.subseq(allStates, newAllStates)) // takes up to 30sec to z3
+        assert(ListSpecs.subseq(allStates, newAllStates)) // takes up to 40sec to z3
         assert(newAllStates.contains(ste))
         assert(newAllStates.contains(errorState))
-        assert(newAllStates.contains(stout)) // takes up to 30sec to z3
+        assert(newAllStates.contains(stout)) // takes up to 40sec to z3
         assert(transitionsStates(newTransitions).forall(s => newAllStates.contains(s)))
         assert(noTransitionOutOfErrorState(newTransitions, errorState))
-        assert(stout != errorState) // takes up to 30sec to z3
+        assert(stout != errorState) // takes up to 40sec to z3
+
+        // LEMMAS --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
         (ste, newAllStates, newTransitions, stout)
       }
@@ -364,20 +397,28 @@ object VerifiedNFA {
 
         val newTransitions: List[Transition[C]] = Cons(t1, Cons(t2, Cons(t3, Cons(t4, transitionsAfterInner))))
 
-        ListUtils.lemmaTailIsSubseqOfListBis(newAllStates)
         ListUtils.lemmaTailIsSubseqOfList(stout, statesAfterInner)
+        ListUtils.lemmaTailIsSubseqOfListBis(newAllStates)
+        ListUtils.lemmaTailIsSubseqOfListBis(newAllStates)
         ListUtils.lemmaSubSeqTransitive(statesAfterInner, Cons(stout, statesAfterInner), newAllStates)
-        ListSpecs.subseqContains(Cons(stout, statesAfterInner), newAllStates, stout)
+        ListUtils.lemmaSubSeqTransitive(allStates, statesAfterInner, newAllStates)
+
         ListSpecs.subseqContains(statesAfterInner, newAllStates, innerSte)
         ListSpecs.subseqContains(statesAfterInner, newAllStates, innerStout)
         ListSpecs.subseqContains(statesAfterInner, newAllStates, errorState)
+        ListSpecs.subseqContains(statesAfterInner, Cons(stout, statesAfterInner), errorState)
+        ListSpecs.subseqContains(statesAfterInner, Cons(stout, statesAfterInner), innerStout)
+        ListSpecs.subseqContains(statesAfterInner, Cons(stout, statesAfterInner), innerSte)
+        ListSpecs.subseqContains(Cons(stout, statesAfterInner), newAllStates, stout)
 
         lemmaAddTransitionNotFromErrorStatePreserves(transitionsAfterInner, t4, errorState)
         lemmaAddTransitionNotFromErrorStatePreserves(Cons(t4, transitionsAfterInner), t3, errorState)
         lemmaAddTransitionNotFromErrorStatePreserves(Cons(t3, Cons(t4, transitionsAfterInner)), t2, errorState)
         lemmaAddTransitionNotFromErrorStatePreserves(Cons(t2, Cons(t3, Cons(t4, transitionsAfterInner))), t1, errorState)
 
-        lemmaAddNewTransitionPreservesForallStatesContainedIfAddingStates(transitionsAfterInner, t4, stout, ste, Cons(ste, Cons(stout, statesAfterInner)))
+        lemmaAddNewTransitionPreservesForallStatesContainedIfAddingStates(transitionsAfterInner, t4, stout, ste, statesAfterInner)
+        assert(!statesAfterInner.contains(ste))
+        assert(!statesAfterInner.contains(stout))
         lemmaAddNewTransitionPreservesForallStatesContainedIfAddingStates(Cons(t4, transitionsAfterInner), t3, innerStout, stout, Cons(ste, Cons(stout, statesAfterInner)))
         lemmaAddNewTransitionPreservesForallStatesContainedIfAddingStates(Cons(t3, Cons(t4, transitionsAfterInner)), t2, ste, stout, Cons(ste, Cons(stout, statesAfterInner)))
         lemmaAddNewTransitionPreservesForallStatesContainedIfAddingStates(Cons(t2, Cons(t3, Cons(t4, transitionsAfterInner))), t1, ste, innerSte, Cons(ste, Cons(stout, statesAfterInner)))
@@ -387,7 +428,6 @@ object VerifiedNFA {
 
         assert(ListSpecs.noDuplicate(newAllStates))
         assert(ListSpecs.subseq(allStates, newAllStates))
-        assert(newAllStates.contains(ste))
         assert(newAllStates.contains(errorState))
         assert(newAllStates.contains(stout))
         assert(transitionsStates(newTransitions).forall(s => newAllStates.contains(s)))
@@ -771,7 +811,7 @@ object VerifiedNFA {
     val newId = maxStateId(states) + 1
     lemmaMaxStatePlusOneNotInList(states)
     State(newId)
-  } ensuring (s => ListSpecs.noDuplicate(Cons(s, states)))
+  } ensuring (s => ListSpecs.noDuplicate(Cons(s, states)) && !states.contains(s))
 
   def maxStateId(states: List[State]): BigInt = {
     require(ListSpecs.noDuplicate(states))
@@ -1000,9 +1040,35 @@ object VerifiedNFAMatcher {
   def equivalenceTheorem[C](r: Regex[C], s: List[C]): Unit = {
     require(validRegex(r))
 
-  } ensuring (matchNFA(fromRegexToNfa(r), s) == VerifiedRegexMatcher.matchR(r, s))
+    r match {
+      case EmptyExpr() => {
+
+        assert(matchNFA(fromRegexToNfa(r), s) == VerifiedRegexMatcher.matchRSpec(r, s))
+      }
+      case EmptyLang() => {
+        assert(VerifiedRegexMatcher.matchRSpec(r, s) == false)
+        assert(matchNFA(fromRegexToNfa(r), s) == VerifiedRegexMatcher.matchRSpec(r, s))
+      }
+      case ElementMatch(c)    => { assert(matchNFA(fromRegexToNfa(r), s) == VerifiedRegexMatcher.matchRSpec(r, s)) }
+      case Union(rOne, rTwo)  => { assert(matchNFA(fromRegexToNfa(r), s) == VerifiedRegexMatcher.matchRSpec(r, s)) }
+      case Star(rInner)       => { assert(matchNFA(fromRegexToNfa(r), s) == VerifiedRegexMatcher.matchRSpec(r, s)) }
+      case Concat(rOne, rTwo) => { assert(matchNFA(fromRegexToNfa(r), s) == VerifiedRegexMatcher.matchRSpec(r, s)) }
+    }
+
+  } ensuring (matchNFA(fromRegexToNfa(r), s) == VerifiedRegexMatcher.matchRSpec(r, s))
 
   // LEMMAS --------------------------------------------------------------------------------------------------------
+
+  @inlineOnce
+  @opaque
+  def lemmaEmptyLangRegexNFAEquiv[C](r: EmptyLang[C], s: List[C]): Unit = {
+    require(validRegex(r))
+
+    val nfa = fromRegexToNfa(r)
+    assert(nfa.allStates.size == 2)
+
+  } ensuring (matchNFA(fromRegexToNfa(r), s) == matchRSpec(r, s))
+
   @inlineOnce
   @opaque
   def lemmaForallContainsTransitionToPreservedAddingInRef[C](l: List[State], lRef: List[Transition[C]], t: Transition[C], state: State): Unit = {
