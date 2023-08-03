@@ -83,10 +83,45 @@ object RegularExpression {
   }
 
   @inline
+  def isEmptyExpr[C](r: Regex[C]): Boolean = {
+    r match {
+      case EmptyExpr() => true
+      case _           => false
+    }
+  }
+  @inline
   def isEmptyLang[C](r: Regex[C]): Boolean = {
     r match {
       case EmptyLang() => true
       case _           => false
+    }
+  }
+  @inline
+  def isElementMatch[C](r: Regex[C]): Boolean = {
+    r match {
+      case ElementMatch(_) => true
+      case _               => false
+    }
+  }
+  @inline
+  def isStar[C](r: Regex[C]): Boolean = {
+    r match {
+      case Star(_) => true
+      case _       => false
+    }
+  }
+  @inline
+  def isUnion[C](r: Regex[C]): Boolean = {
+    r match {
+      case Union(_, _) => true
+      case _           => false
+    }
+  }
+  @inline
+  def isConcat[C](r: Regex[C]): Boolean = {
+    r match {
+      case Concat(_, _) => true
+      case _            => false
     }
   }
 }
@@ -133,8 +168,10 @@ object VerifiedRegexMatcher {
     }
   )
 
+  @inlineOnce
   def matchRSpec[C](r: Regex[C], s: List[C]): Boolean = {
     require(validRegex(r))
+    decreases(s.size + regexDepth(r))
     r match {
       case EmptyExpr()     => s.isEmpty
       case EmptyLang()     => false

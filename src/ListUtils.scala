@@ -501,6 +501,13 @@ object ListUtils {
 
   @inlineOnce
   @opaque
+  def lemmaSubseqOfEmptyIsEmpty[B](@induct l1: List[B], l2: List[B]): Unit = {
+    require(l2.isEmpty)
+    require(ListSpecs.subseq(l1, l2))
+  } ensuring (l2.isEmpty)
+
+  @inlineOnce
+  @opaque
   def lemmaTailIsSubseqOfList[B](elmt: B, l: List[B]): Unit = {
     l match {
       case Nil() => ()
@@ -939,4 +946,31 @@ object ListUtils {
     require(b != diffB)
 
   } ensuring (!Cons(diffB, l).contains(b))
+
+  @inlineOnce
+  @opaque
+  def notContainsAThenTailNotContains[B](
+      @induct l: List[B],
+      b: B
+  ): Unit = {
+    require(!l.contains(b))
+
+  } ensuring (l.isEmpty || !l.tail.contains(b))
+
+  @inlineOnce
+  @opaque
+  def lemmaListContainsThenFilterContainsNotEmpty[B](l1: List[B], l2: List[B], b: B): Unit = {
+    require(l1.contains(b))
+    require(l2.contains(b))
+    decreases(l1.size)
+    l1 match {
+      case Cons(hd, tl) => {
+        if (hd != b) {
+          lemmaListContainsThenFilterContainsNotEmpty(tl, l2, b)
+        }
+      }
+      case Nil() => check(false)
+    }
+  } ensuring (!l1.filter(e => l2.contains(e)).isEmpty)
+
 }
