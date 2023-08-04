@@ -74,6 +74,21 @@ object ListUtils {
 
   @inlineOnce
   @opaque
+  def subseqForall[B](l: List[B], lSub: List[B], p: B => Boolean): Unit = {
+    require(ListSpecs.subseq(lSub, l))
+    require(l.forall(p))
+    lSub match {
+      case Cons(hd, tl) => {
+        ListUtils.lemmaTailIsSubseqOfBiggerList(lSub, l)
+        ListSpecs.subseqContains(lSub, l, hd)
+        ListSpecs.forallContained(l, p, hd)
+        subseqForall(l, tl, p)
+      }
+      case Nil() => ()
+    }
+  } ensuring (lSub.forall(p))
+  @inlineOnce
+  @opaque
   def lemmaConsecutiveSubseqThenSubseq[B](l1: List[B], l2: List[B]): Unit = {
     require(consecutiveSubseq(l1, l2))
     decreases(l1.size + l2.size)
@@ -972,5 +987,21 @@ object ListUtils {
       case Nil() => check(false)
     }
   } ensuring (!l1.filter(e => l2.contains(e)).isEmpty)
+
+  @inlineOnce
+  @opaque
+  def lemmaListNotContainsThenFilterContainsEmpty[B](l1: List[B], l2: List[B], b: B): Unit = {
+    require(!l1.contains(b))
+    require(l2.contains(b))
+    decreases(l1.size)
+    l1 match {
+      case Cons(hd, tl) => {
+        if (hd != b) {
+          lemmaListContainsThenFilterContainsNotEmpty(tl, l2, b)
+        }
+      }
+      case Nil() => check(false)
+    }
+  } ensuring (l1.filter(e => l2.contains(e)).isEmpty)
 
 }

@@ -104,6 +104,13 @@ object RegularExpression {
     }
   }
   @inline
+  def elementMatchIsChar[C](r: Regex[C], c: C): Boolean = {
+    require(isElementMatch(r))
+    r match {
+      case ElementMatch(cc) => c == cc
+    }
+  }
+  @inline
   def isStar[C](r: Regex[C]): Boolean = {
     r match {
       case Star(_) => true
