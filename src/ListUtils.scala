@@ -77,6 +77,7 @@ object ListUtils {
   def subseqForall[B](l: List[B], lSub: List[B], p: B => Boolean): Unit = {
     require(ListSpecs.subseq(lSub, l))
     require(l.forall(p))
+    decreases(lSub.size)
     lSub match {
       case Cons(hd, tl) => {
         ListUtils.lemmaTailIsSubseqOfBiggerList(lSub, l)
@@ -654,6 +655,18 @@ object ListUtils {
 
   @inlineOnce
   @opaque
+  def lemmaForallThenDisjunction2[B](@induct l: List[B], p: B => Boolean, q: B => Boolean): Unit = {
+    require(l.forall(b => p(b)))
+  } ensuring (l.forall(b => q(b) || p(b)))
+
+  @inlineOnce
+  @opaque
+  def lemmaForallThenDisjunction1[B](@induct l: List[B], p: B => Boolean, q: B => Boolean): Unit = {
+    require(l.forall(b => p(b)))
+  } ensuring (l.forall(b => p(b) || q(b)))
+
+  @inlineOnce
+  @opaque
   def lemmaForallContainsThenForEqualLists[B](
       l1: List[B],
       l2: List[B],
@@ -992,16 +1005,32 @@ object ListUtils {
   @opaque
   def lemmaListNotContainsThenFilterContainsEmpty[B](l1: List[B], l2: List[B], b: B): Unit = {
     require(!l1.contains(b))
-    require(l2.contains(b))
+    require(l2 == List(b))
     decreases(l1.size)
     l1 match {
       case Cons(hd, tl) => {
-        if (hd != b) {
-          lemmaListContainsThenFilterContainsNotEmpty(tl, l2, b)
-        }
+        lemmaListNotContainsThenFilterContainsEmpty(tl, l2, b)
       }
-      case Nil() => check(false)
+      case Nil() => ()
     }
   } ensuring (l1.filter(e => l2.contains(e)).isEmpty)
 
+  @inlineOnce
+  @opaque
+  def lemmaSameContentSameSizeSmallerEqOneSameList[B](l1: List[B], l2: List[B]): Unit = {
+    require(l1.content == l2.content)
+    require(l1.size == l2.size)
+    require(l1.size <= 1)
+
+    l1 match {
+      case Nil() => {
+        assert(l2.isEmpty)
+      }
+      case Cons(hd, tl) => {
+        assert(l2.head == hd)
+        assert(tl.isEmpty)
+        lemmaSameContentSameSizeSmallerEqOneSameList(tl, l2.tail)
+      }
+    }
+  } ensuring (l1 == l2)
 }
