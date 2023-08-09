@@ -863,6 +863,7 @@ object VerifiedNFAMatcher {
   import RegularExpression._
   import ListUtils._
 
+  @inline
   def matchNFA[C](nfa: NFA[C], input: List[C]): Boolean = {
     require(validNFA(nfa))
     matchNFAInner(nfa, input, List(nfa.startState), Nil(), input)
@@ -1206,14 +1207,30 @@ object VerifiedNFAMatcher {
     lemmaEpsilonClosureContainsToExploreStates(nfa, currentStates, Nil(), ste)
     check(currentStatesEpsilonClosure.contains(ste))
 
-    check(nfa.transitions == newTransitions) // helps stainless, takes around 18-20 sec to verify
+    check(nfa.transitions == newTransitions) // helps stainless
     check(!isEpsilonTransition(newTransition)) // helps stainless
     check(!transitionFromEq(newTransition, stout)) // helps stainless
+
+    newTransitions match {
+      case Cons(hd, tl) => {
+        assert(tl.isEmpty)
+        assert(hd == newTransition)
+        check(!isEpsilonTransition(newTransition)) // helps stainless
+        check(!transitionFromEq(newTransition, stout)) // helps stainless
+        check(tl.forall(t => !transitionFromEq(t, stout)))
+        check(tl.forall(t => !isEpsilonTransition(t)))
+      }
+    }
     check(newTransitions.forall(t => !transitionFromEq(t, stout))) // helps stainless
     check(newTransitions.forall(t => !isEpsilonTransition(t))) // helps stainless
+
+    check(ListSpecs.noDuplicate(currentStates)) // helps stainless
+
     ListUtils.lemmaForallThenDisjunction1(nfa.transitions, t => !isEpsilonTransition(t), t => !transitionToEq(t, stout))
     ListUtils.lemmaForallThenDisjunction1(nfa.transitions, t => !isEpsilonTransition(t), t => !transitionToEq(t, errorState))
     lemmaTransNotContainsEpsilonTrToThenClosureNotContains(nfa, currentStates, Nil(), stout)
+
+    check(noEpsilonTransitionTo(nfa.transitions, errorState)) // helps stainless
     lemmaTransNotContainsEpsilonTrToThenClosureNotContains(nfa, currentStates, Nil(), errorState)
 
     check(!currentStatesEpsilonClosure.contains(stout))
@@ -1223,14 +1240,14 @@ object VerifiedNFAMatcher {
 
     val cc = s.head
     val tl = s.tail
-    assert(cc == c)
-    assert(!tl.isEmpty)
-    assert(matchRSpec(r, s) == false)
+    // assert(cc == c)
+    // assert(!tl.isEmpty)
+    // assert(matchRSpec(r, s) == false)
 
-    assert(pastChars.isEmpty)
-    assert(currentStates == List(nfa.startState))
-    assert(suffix == s)
-    assert(ListSpecs.noDuplicate(List(nfa.startState)))
+    // assert(pastChars.isEmpty)
+    // assert(currentStates == List(nfa.startState))
+    // assert(suffix == s)
+    // assert(ListSpecs.noDuplicate(List(nfa.startState)))
     assert(matchNFA(nfa, s) == matchNFAInner(nfa, s, currentStates, pastChars, suffix)) // to optimise
 
     val nextChar = suffix.head
@@ -1240,14 +1257,14 @@ object VerifiedNFAMatcher {
 
     ListUtils.lemmaChangeCutStillConcatTotal(pastChars, suffix, s)
     lemmaReadOneCharContainsOneStateIfOneTransition(nfa, nfa.transitions, currentStatesEpsilonClosure, nextChar, Nil(), newTransition, ste, stout)
-    assert(nextChar == cc)
-    assert(nextChar == c)
+    // assert(nextChar == cc)
+    // assert(nextChar == c)
 
-    assert(afterConsumingNextChar == List(stout))
+    // assert(afterConsumingNextChar == List(stout))
 
     val afterEpsilon = epsilonClosure(nfa, afterConsumingNextChar)
 
-    assert(nfa.transitions.forall(t => !isEpsilonTransition(t)))
+    // assert(nfa.transitions.forall(t => !isEpsilonTransition(t)))
     lemmaEpsilonClosureWithNoEpsilonTrOnlyToExploreAndSeen(nfa, afterConsumingNextChar, Nil())
 
     ListUtils.lemmaSubsetContentThenForallContains(afterEpsilon, List(stout))
@@ -1256,8 +1273,8 @@ object VerifiedNFAMatcher {
     ListUtils.lemmaForallContainsAndNoDuplicateThenSmallerList(List(stout), afterEpsilon)
     ListUtils.lemmaSameContentSameSizeSmallerEqOneSameList(afterEpsilon, List(stout))
 
-    assert(afterEpsilon.size == List(stout).size)
-    assert(afterEpsilon == List(stout))
+    // assert(afterEpsilon.size == List(stout).size)
+    // assert(afterEpsilon == List(stout))
 
     assert(matchNFA(nfa, s) == matchNFAInner(nfa, s, afterEpsilon, newPastChars, newSuffix))
 
@@ -1266,7 +1283,7 @@ object VerifiedNFAMatcher {
     }
 
     val currentStatesEpsilonClosure2 = epsilonClosure(nfa, afterEpsilon, Nil())
-    assert(currentStatesEpsilonClosure2 == List(stout))
+    // assert(currentStatesEpsilonClosure2 == List(stout))
 
     val nextChar2 = newSuffix.head
     val newPastChars2 = newPastChars ++ List(nextChar2)
@@ -1277,14 +1294,14 @@ object VerifiedNFAMatcher {
 
     check(nfa.transitions.forall(t => !transitionFromEq(t, stout)))
     lemmaReadOneCharEmptyIfNoTransitionsOutOfState(nfa, nfa.transitions, currentStatesEpsilonClosure2, nextChar2, Nil(), stout)
-    assert(afterConsumingNextChar2.isEmpty)
+    // assert(afterConsumingNextChar2.isEmpty)
 
     val afterEpsilon2 = epsilonClosure(nfa, afterConsumingNextChar2)
 
-    assert(afterEpsilon2.isEmpty)
+    // assert(afterEpsilon2.isEmpty)
 
-    assert(newPastChars2 ++ newSuffix2 == s)
-    assert(newPastChars ++ newSuffix == s)
+    // assert(newPastChars2 ++ newSuffix2 == s)
+    // assert(newPastChars ++ newSuffix == s)
 
     assert(matchNFAInner(nfa, s, afterEpsilon, newPastChars, newSuffix) == matchNFAInner(nfa, s, afterEpsilon2, newPastChars2, newSuffix2))
     assert(matchNFA(nfa, s) == matchNFAInner(nfa, s, afterEpsilon2, newPastChars2, newSuffix2))
@@ -1318,6 +1335,7 @@ object VerifiedNFAMatcher {
             lemmaTransitionThenStatesInTransitionsStates(nfa.transitions, hd)
             lemmaReadOneCharEmptyIfNoTransitionsOutOfState(nfa, tl, startStates, c, acc, from)
           }
+          case _ => lemmaReadOneCharEmptyIfNoTransitionsOutOfState(nfa, tl, startStates, c, acc, from)
         }
       case Nil() => ()
     }
