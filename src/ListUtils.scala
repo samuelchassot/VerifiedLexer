@@ -73,6 +73,7 @@ object ListUtils {
   }
 
   def isSuffix[B](l1: List[B], lTot: List[B]): Boolean = {
+    decreases(lTot.size)
     (l1, lTot) match {
       case (_, Cons(hdTot, tlTot)) if l1.size < lTot.size => isSuffix(l1, tlTot)
       case (_, _) if l1 == lTot                           => true
@@ -131,6 +132,7 @@ object ListUtils {
   @opaque
   def lemmaRemovingHeadOfSuffixThenGetPrefixLonger[B](l: List[B], suffix: List[B]): Unit = {
     require(isSuffix(suffix, l))
+    decreases(l.size)
 
     l match {
       case Cons(hdl, tll) if l.size == suffix.size => ()

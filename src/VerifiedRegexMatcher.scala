@@ -125,6 +125,14 @@ object RegularExpression {
     }
   }
   @inline
+  def unionInnersEquals[C](r: Regex[C], r1: Regex[C], r2: Regex[C]): Boolean = {
+    require(isUnion(r))
+    r match {
+      case Union(rOne, rTwo) => r1 == rOne && r2 == rTwo
+    }
+  }
+  
+  @inline
   def isConcat[C](r: Regex[C]): Boolean = {
     r match {
       case Concat(_, _) => true

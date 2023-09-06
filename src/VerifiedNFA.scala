@@ -1,6 +1,9 @@
 /** Author: Samuel Chassot
   */
 
+/** Command to verify the whole project stainless-dotty VerifiedRegexMatcher.scala ListUtils.scala VerifiedNFA.scala -Dparallel=3 --config-file=stainless.conf --watch
+  */
+
 import stainless.collection._
 import stainless.annotation._
 import stainless.lang._
@@ -1044,34 +1047,173 @@ object VerifiedNFAMatcher {
   } ensuring (res => ListSpecs.noDuplicate(res) && res.forall(s => nfa.allStates.contains(s)))
 
   // THEOREMS --------------------------------------------------------------------------------------------------------
+
+  @inlineOnce
   def equivalenceTheorem[C](r: Regex[C], s: List[C]): Unit = {
     require(validRegex(r))
-
     val nfa = fromRegexToNfa(r)
     r match {
       case EmptyExpr()     => lemmaEmptyExprRegexNFAEquiv(r, s)
       case EmptyLang()     => lemmaEmptyLangRegexNFAEquiv(r, s)
       case ElementMatch(c) => lemmaElementMatchRegexNFAEquiv(r, s, c)
-      case Union(rOne, rTwo) => {
-        assert(matchNFA(nfa, s) == VerifiedRegexMatcher.matchRSpec(r, s)) // TODO
-      }
-      case Star(rInner) => {
-        assert(matchNFA(nfa, s) == VerifiedRegexMatcher.matchRSpec(r, s)) // TODO
-      }
-      case Concat(rOne, rTwo) => {
-        assert(matchNFA(nfa, s) == VerifiedRegexMatcher.matchRSpec(r, s)) // TODO
-      }
+      case Union(rOne, rTwo) => lemmaUnionMatchRegexNFAEquiv(r, rOne, rTwo, s)
+      case Star(rInner) => lemmaStarMatchRegexNFAEquiv(rInner, s)
+      case Concat(rOne, rTwo) => lemmaConcatMatchRegexNFAEquiv(rOne, rTwo, s)
     }
-
   } ensuring (matchNFA(fromRegexToNfa(r), s) == VerifiedRegexMatcher.matchRSpec(r, s))
 
   // LEMMAS --------------------------------------------------------------------------------------------------------------------------------------
+
+  // LEMMAS FOR UNION EQUIV -- BEGIN -------------------------------------------------------------------------------------------------------------
+
+  @opaque
+  @inlineOnce
+  def lemmaUnionMatchRegexNFAEquiv[C](r: Regex[C], r1: Regex[C], r2: Regex[C], s: List[C]): Unit = {
+    require(validRegex(r1))
+    require(validRegex(r2))
+    require(validRegex(r))
+    require(isUnion(r))
+    require(unionInnersEquals(r, r1, r2))
+    decreases(regexDepth(r))
+
+    val nfa = fromRegexToNfa(r)
+
+    val suffix = s
+    val pastChars = Nil[C]()
+
+    val errorState = getFreshState(Nil())
+    val allStates = List(errorState)
+    val goRes = go(r)(allStates, Nil(), errorState)
+
+    val (ste1, statesAfter1, transitionsAfter1, stout1) =
+          go(r1)(allStates, Nil(), errorState)
+
+    val nfaR1 = fromRegexToNfa(r1)
+    assert(nfaR1.transitions == ListUtils.removeDuplicates(transitionsAfter1, transitionsAfter1))
+    assert(nfaR1.startState == ste1)
+    assert(nfaR1.finalStates == List(stout1))
+    assert(nfaR1.allStates == statesAfter1)
+
+     r1 match {
+      case EmptyExpr()     => {
+        lemmaEmptyExprRegexNFAEquiv(r1, s)
+        check(matchNFA(fromRegexToNfa(r1), s) == matchRSpec(r1, s))
+      }
+      case EmptyLang()     => {
+        lemmaEmptyLangRegexNFAEquiv(r1, s)
+        check(matchNFA(fromRegexToNfa(r1), s) == matchRSpec(r1, s))
+      }
+      case ElementMatch(c) => {
+        lemmaElementMatchRegexNFAEquiv(r1, s, c)
+        check(matchNFA(fromRegexToNfa(r1), s) == matchRSpec(r1, s))
+      }
+      case Union(rOne, rTwo) =>  {
+        lemmaUnionMatchRegexNFAEquiv(r1, rOne, rTwo, s)
+        check(matchNFA(fromRegexToNfa(r1), s) == matchRSpec(r1, s))
+      }
+      case Star(rInner) => {
+        lemmaStarMatchRegexNFAEquiv(rInner, s)
+        check(matchNFA(fromRegexToNfa(r1), s) == matchRSpec(r1, s))
+      }
+      case Concat(rOne, rTwo) => {
+        lemmaConcatMatchRegexNFAEquiv(rOne, rTwo, s)
+        check(matchNFA(fromRegexToNfa(r1), s) == matchRSpec(r1, s))
+      }
+    }
+    check(matchNFA(fromRegexToNfa(r1), s) == matchRSpec(r1, s))
+
+    // val (ste2, statesAfter2, transitionsAfter2, stout2) = go(r2)(statesAfter1, transitionsAfter1, errorState)
+
+    //  val nfaR2 = fromRegexToNfa(r2)
+    //  r2 match {
+    //   case EmptyExpr()     => lemmaEmptyExprRegexNFAEquiv(r2, s)
+    //   case EmptyLang()     => lemmaEmptyLangRegexNFAEquiv(r2, s)
+    //   case ElementMatch(c) => lemmaElementMatchRegexNFAEquiv(r2, s, c)
+    //   case Union(rOne, rTwo) =>  lemmaUnionMatchRegexNFAEquiv(r2, rOne, rTwo, s)
+    //   case Star(rInner) => lemmaStarMatchRegexNFAEquiv(rInner, s)
+    //   case Concat(rOne, rTwo) => lemmaConcatMatchRegexNFAEquiv(rOne, rTwo, s)
+    // }
+    // check(matchNFA(nfaR2, s) == matchRSpec(r2, s))
+
+    assume(matchNFA(fromRegexToNfa(r), s) == matchRSpec(r, s))
+
+  } ensuring (matchNFA(fromRegexToNfa(r), s) == matchRSpec(r, s))
+  // LEMMAS FOR UNION EQUIV -- END ---------------------------------------------------------------------------------------------------------------
+
+// LEMMAS FOR CONCAT EQUIV -- BEGIN ------------------------------------------------------------------------------------------------------------
+
+// TODO
+  @opaque
+  def lemmaConcatMatchRegexNFAEquiv[C](r1: Regex[C], r2: Regex[C], s: List[C]): Unit = {
+    require(validRegex(r1))
+    require(validRegex(r2))
+
+    val r = Concat(r1, r2)
+
+    val nfa = fromRegexToNfa(r)
+
+    val suffix = s
+    val pastChars = Nil[C]()
+
+    val errorState = getFreshState(Nil())
+    val allStates = List(errorState)
+    val goRes = go(r)(allStates, Nil(), errorState)
+
+    val (ste1, statesAfter1, transitionsAfter1, stout1) =
+          go(r1)(allStates, Nil(), errorState)
+
+    val nfaR1 = fromRegexToNfa(r1)
+    assert(nfaR1.transitions == ListUtils.removeDuplicates(transitionsAfter1, transitionsAfter1))
+    assert(nfaR1.startState == ste1)
+    assert(nfaR1.finalStates == List(stout1))
+    assert(nfaR1.allStates == statesAfter1)
+
+    
+
+    val (ste2, statesAfter2, transitionsAfter2, stout2) = go(r2)(statesAfter1, transitionsAfter1, errorState)
+
+
+
+
+
+
+
+
+  } ensuring (matchNFA(fromRegexToNfa(Concat(r1, r2)), s) == matchRSpec(Concat(r1, r2), s))
+  // LEMMAS FOR CONCAT EQUIV -- END --------------------------------------------------------------------------------------------------------------
+
+  // LEMMAS FOR STAR EQUIV -- BEGIN -------------------------------------------------------------------------------------------------------------
+
+  // TODO
+  @opaque
+  def lemmaStarMatchRegexNFAEquiv[C](rI: Regex[C], s: List[C]): Unit = {
+    require(validRegex(rI))
+
+    val r = Star(rI)
+
+    val nfa = fromRegexToNfa(r)
+
+    val suffix = s
+    val pastChars = Nil[C]()
+
+    val errorState = getFreshState(Nil())
+    val allStates = List(errorState)
+    val goRes = go(r)(allStates, Nil(), errorState)
+
+
+
+
+
+
+
+  } ensuring (matchNFA(fromRegexToNfa(Star(rI)), s) == matchRSpec(Star(rI), s))
+  // LEMMAS FOR STAR EQUIV -- END ---------------------------------------------------------------------------------------------------------------
 
   // LEMMAS FOR ELEMENT MATCH EQUIV -- BEGIN -----------------------------------------------------------------------------------------------------
 
   /** This lemma is really slow, it should be verified with >20sec timeout
     *
-    * PASSES BIT NEEDS SOME OPTIMIZATIONS TO MAKE IT PRACTICAL
+    * PASSES BUT NEEDS SOME OPTIMIZATIONS TO MAKE IT PRACTICAL
     *
     * @param r
     * @param s
