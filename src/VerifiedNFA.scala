@@ -27,7 +27,6 @@ object VerifiedNFA {
       allStates: List[State]
   )
 
-  @inline
   def validNFA[C](nfa: NFA[C]): Boolean =
     nfa.allStates.contains(nfa.startState) &&
       nfa.allStates.contains(nfa.errorState) &&
@@ -62,13 +61,11 @@ object VerifiedNFA {
     }
   }
 
-  @inline
   def isEpsilonTransition[C](t: Transition[C]): Boolean = t match {
     case EpsilonTransition(_, _) => true
     case _                       => false
   }
 
-  @inline
   def isLabeledTransition[C](t: Transition[C]): Boolean = t match {
     case LabeledTransition(_, _, _) => true
     case _                          => false
@@ -142,18 +139,15 @@ object VerifiedNFA {
       && ListSpecs.subseq(res, transitionsFrom(state, transitions))
   )
 
-  @inline
   def transitionFromEq[C](t: Transition[C], s: State): Boolean = t match {
     case EpsilonTransition(from, _)    => from == s
     case LabeledTransition(from, _, _) => from == s
   }
-  @inline
   def transitionToEq[C](t: Transition[C], s: State): Boolean = t match {
     case EpsilonTransition(_, to)    => to == s
     case LabeledTransition(_, _, to) => to == s
   }
 
-  @inline
   def labelEq[C](t: Transition[C], c: C): Boolean = {
     require(isLabeledTransition(t))
     t match {
@@ -174,8 +168,8 @@ object VerifiedNFA {
     }
   }
 
-  @inlineOnce
-  @opaque
+  
+  
   def lemmaNoEpsilonTransitionToThenNoneInEpsilonTransitionsFrom[C](transitions: List[Transition[C]], to: State, from: State): Unit = {
     require(ListSpecs.noDuplicate(transitions))
     require(noEpsilonTransitionTo(transitions, to))
@@ -196,8 +190,8 @@ object VerifiedNFA {
     }
   } ensuring (epsilonTransitionsFrom(from, transitions).forall(t => !transitionToEq(t, to)))
 
-  @inlineOnce
-  @opaque
+  
+  
   def lemmaNoTransitionsOutOfErrorStateThenNotContained[C](@induct transitions: List[Transition[C]], t: Transition[C], errorState: State): Unit = {
     require(noTransitionOutOfErrorState(transitions, errorState))
     require(transitionFromEq(t, errorState))
@@ -205,7 +199,6 @@ object VerifiedNFA {
   } ensuring (!transitions.contains(t))
 
   // Adapted from Romain's version
-  @inline
   def fromRegexToNfa[C](r: Regex[C]): NFA[C] = {
     val errorState = getFreshState(Nil())
     val states = List(errorState)
@@ -474,15 +467,15 @@ object VerifiedNFA {
 
   // go function lemmas -------------------------------------------------------------------------------------------------------------------------------------------
 
-  @inlineOnce
-  @opaque
+  
+  
   def lemmaAddTransitionNotFromErrorStatePreserves[C](@induct transitions: List[Transition[C]], t: Transition[C], errorState: State): Unit = {
     require(!transitionFromEq(t, errorState))
     require(noTransitionOutOfErrorState(transitions, errorState))
 
   } ensuring (noTransitionOutOfErrorState(Cons(t, transitions), errorState))
-  @inlineOnce
-  @opaque
+  
+  
   def lemmaSameTransitionsContentOutOfErrorStatePreserved[C](transitions: List[Transition[C]], transitionsBis: List[Transition[C]], errorState: State): Unit = {
     require(transitionsBis.content.subsetOf(transitions.content))
     require(noTransitionOutOfErrorState(transitions, errorState))
@@ -513,8 +506,8 @@ object VerifiedNFA {
 
   } ensuring (noTransitionOutOfErrorState(transitionsBis, errorState))
 
-  @inlineOnce
-  @opaque
+  
+  
   def lemmaSameTransitionContentThenSameTransitionsStatesContent[C](transitions: List[Transition[C]], transitionsBis: List[Transition[C]]): Unit = {
     require(transitionsBis.content.subsetOf(transitions.content))
     decreases(transitionsBis)
@@ -535,8 +528,8 @@ object VerifiedNFA {
 
   } ensuring (transitionsStates(transitionsBis).content.subsetOf(transitionsStates(transitions).content))
 
-  @inlineOnce
-  @opaque
+  
+  
   def lemmaTransitionInListThenToStatesInTransitionsStates[C](
       l: List[Transition[C]],
       t: Transition[C]
@@ -556,8 +549,8 @@ object VerifiedNFA {
       transitionsStates(l).contains(from) && transitionsStates(l).contains(to)
   })
 
-  @inlineOnce
-  @opaque
+  
+  
   def lemmaTransitionFromPreservedAddingOther[C](
       transitions: List[Transition[C]],
       t: Transition[C],
@@ -577,8 +570,8 @@ object VerifiedNFA {
 
   } ensuring (transitionsFrom(from, Cons(t, transitions)) == transitionsFrom(from, transitions))
 
-  @inlineOnce
-  @opaque
+  
+  
   def lemmaTransitionThenStatesInTransitionsStates[C](
       transitions: List[Transition[C]],
       t: Transition[C]
@@ -612,8 +605,8 @@ object VerifiedNFA {
       transitionsStates(transitions).contains(to)
   })
 
-  @inlineOnce
-  @opaque
+  
+  
   def lemmaAddNewTransitionPreservesForallStatesContainedIfAddingStates[C](
       transitions: List[Transition[C]],
       t: Transition[C],
@@ -664,8 +657,8 @@ object VerifiedNFA {
     !oldStates.contains(s1) && !oldStates.contains(s2) && transitionsStates(Cons(t, transitions)).forall(s => Cons(s2, Cons(s1, oldStates)).contains(s))
   })
 
-  @inlineOnce
-  @opaque
+  
+  
   def lemmaTransitionsWithNewStateCannotBeInList[C](
       transitions: List[Transition[C]],
       states: List[State],
@@ -722,8 +715,8 @@ object VerifiedNFA {
 
   } ensuring (!transitions.contains(newT))
 
-  @inlineOnce
-  @opaque
+  
+  
   def lemmaTransitionFromContainsAll[C](transitions: List[Transition[C]], state: State, t: Transition[C]): Unit = {
     require(transitionFromEq(t, state))
     require(ListSpecs.noDuplicate(transitions))
@@ -738,8 +731,8 @@ object VerifiedNFA {
 
   } ensuring (!transitions.contains(t))
 
-  @inlineOnce
-  @opaque
+  
+  
   def lemmaEpsilonTransitionFromContainsAll[C](transitions: List[Transition[C]], state: State, t: Transition[C]): Unit = {
     require(transitionFromEq(t, state))
     require(isEpsilonTransition(t))
@@ -754,8 +747,8 @@ object VerifiedNFA {
 
   } ensuring (!transitions.contains(t))
 
-  @inlineOnce
-  @opaque
+  
+  
   def lemmaEpsilonTransitionFromEmptyIfNoEpsilonTrInList[C](transitions: List[Transition[C]], state: State): Unit = {
     require(ListSpecs.noDuplicate(transitions))
     require(transitions.forall(t => !isEpsilonTransition(t)))
@@ -769,16 +762,16 @@ object VerifiedNFA {
 
   } ensuring (epsilonTransitionsFrom(state, transitions).isEmpty)
 
-  @inlineOnce
-  @opaque
+  
+  
   def lemmaEpsilonTransitionFromContainsNoLabeled[C](@induct transitions: List[Transition[C]], state: State, t: Transition[C]): Unit = {
     require(isLabeledTransition(t))
     require(ListSpecs.noDuplicate(transitions))
 
   } ensuring (!epsilonTransitionsFrom(state, transitions).contains(t))
 
-  @inlineOnce
-  @opaque
+  
+  
   def lemmaLabeledTransitionFromContainsAll[C](transitions: List[Transition[C]], state: State, t: Transition[C]): Unit = {
     require(transitionFromEq(t, state))
     require(isLabeledTransition(t))
@@ -866,7 +859,6 @@ object VerifiedNFAMatcher {
   import RegularExpression._
   import ListUtils._
 
-  @inline
   def matchNFA[C](nfa: NFA[C], input: List[C]): Boolean = {
     require(validNFA(nfa))
     matchNFAInner(nfa, input, List(nfa.startState), Nil(), input)
@@ -1048,7 +1040,7 @@ object VerifiedNFAMatcher {
 
   // THEOREMS --------------------------------------------------------------------------------------------------------
 
-  @inlineOnce
+  
   def equivalenceTheorem[C](r: Regex[C], s: List[C]): Unit = {
     require(validRegex(r))
     val nfa = fromRegexToNfa(r)
@@ -1066,8 +1058,8 @@ object VerifiedNFAMatcher {
 
   // LEMMAS FOR UNION EQUIV -- BEGIN -------------------------------------------------------------------------------------------------------------
 
-  @opaque
-  @inlineOnce
+  
+  
   def lemmaUnionMatchRegexNFAEquiv[C](r: Regex[C], r1: Regex[C], r2: Regex[C], s: List[C]): Unit = {
     require(validRegex(r1))
     require(validRegex(r2))
@@ -1132,7 +1124,7 @@ object VerifiedNFAMatcher {
 // LEMMAS FOR CONCAT EQUIV -- BEGIN ------------------------------------------------------------------------------------------------------------
 
 // TODO
-  @opaque
+  
   def lemmaConcatMatchRegexNFAEquiv[C](r1: Regex[C], r2: Regex[C], s: List[C]): Unit = {
     require(validRegex(r1))
     require(validRegex(r2))
@@ -1165,7 +1157,7 @@ object VerifiedNFAMatcher {
   // LEMMAS FOR STAR EQUIV -- BEGIN -------------------------------------------------------------------------------------------------------------
 
   // TODO
-  @opaque
+  
   def lemmaStarMatchRegexNFAEquiv[C](rI: Regex[C], s: List[C]): Unit = {
     require(validRegex(rI))
 
@@ -1193,7 +1185,7 @@ object VerifiedNFAMatcher {
     * @param s
     * @param c
     */
-  @opaque
+  
   def lemmaElementMatchRegexNFAEquiv[C](r: Regex[C], s: List[C], c: C): Unit = {
     require(validRegex(r))
     require(isElementMatch(r))
@@ -1221,7 +1213,8 @@ object VerifiedNFAMatcher {
     lemmaEpsilonClosureContainsToExploreStates(nfa, currentStates, Nil(), ste)
     check(currentStatesEpsilonClosure.contains(ste))
 
-    check(nfa.transitions == newTransitions) // helps stainless, takes around 18-20 sec to verify
+    check(nfa.transitions == ListUtils.removeDuplicates(newTransitions, newTransitions))// helps stainless
+    check(nfa.transitions == newTransitions) 
     check(!isEpsilonTransition(newTransition)) // helps stainless
     check(newTransitions.forall(t => !isEpsilonTransition(t))) // helps stainless
     ListUtils.lemmaForallThenDisjunction1(nfa.transitions, t => !isEpsilonTransition(t), t => !transitionToEq(t, stout))
@@ -1235,7 +1228,10 @@ object VerifiedNFAMatcher {
     check(nfa.finalStates == Cons(stout, Nil()))
 
     s match {
-      case Nil() => lemmaListNotContainsThenFilterContainsEmpty(currentStatesEpsilonClosure, nfa.finalStates, stout)
+      case Nil() => {
+        ListUtils.lemmaListNotContainsThenFilterContainsEmpty(currentStatesEpsilonClosure, nfa.finalStates, stout)
+        check(matchNFA(fromRegexToNfa(r), s) == matchRSpec(r, s))
+      }
       case Cons(cc, Nil()) if c == cc => {
         assert(s == List(c))
         assert(matchRSpec(r, s) == true)
@@ -1255,8 +1251,9 @@ object VerifiedNFAMatcher {
         val afterEpsilon = epsilonClosure(nfa, afterConsumingNextChar)
 
         lemmaEpsilonClosureContainsToExploreStates(nfa, afterConsumingNextChar, Nil(), stout)
-        assert(afterEpsilon.contains(stout))
-        assert(matchNFA(nfa, s) == matchNFAInner(nfa, s, afterEpsilon, newPastChars, newSuffix))
+        check(afterEpsilon.contains(stout))
+        check(matchNFA(nfa, s) == matchNFAInner(nfa, s, List(nfa.startState), Nil(), s)) // helps
+        check(matchNFA(nfa, s) == matchNFAInner(nfa, s, afterEpsilon, newPastChars, newSuffix)) // helps
 
         val currentStatesEpsilonClosure2 = epsilonClosure(nfa, afterEpsilon, Nil())
         lemmaEpsilonClosureContainsToExploreStates(nfa, afterEpsilon, Nil(), stout)
@@ -1292,7 +1289,7 @@ object VerifiedNFAMatcher {
 
   } ensuring (matchNFA(fromRegexToNfa(r), s) == matchRSpec(r, s))
 
-  @opaque
+  
   def lemmaElementMatchRegexNFAEquivCorrectHeadNonEmptyTl[C](r: Regex[C], s: List[C], c: C): Unit = {
     require(validRegex(r))
     require(isElementMatch(r))
@@ -1428,8 +1425,8 @@ object VerifiedNFAMatcher {
 
   } ensuring (matchNFA(fromRegexToNfa(r), s) == matchRSpec(r, s))
 
-  @inlineOnce
-  @opaque
+  
+  
   def lemmaReadOneCharEmptyIfNoTransitionsOutOfState[C](nfa: NFA[C], transitionsRec: List[Transition[C]], startStates: List[State], c: C, acc: List[State], from: State): Unit = {
     require(validNFA(nfa))
     require(ListSpecs.noDuplicate(startStates))
@@ -1457,8 +1454,8 @@ object VerifiedNFAMatcher {
     }
   } ensuring (readOneChar(nfa, transitionsRec, startStates, c, acc).isEmpty)
 
-  @inlineOnce
-  @opaque
+  
+  
   def lemmaEpsilonClosureWithNoEpsilonTrOnlyToExploreAndSeen[C](nfa: NFA[C], toExplore: List[State], seen: List[State]): Unit = {
     require(validNFA(nfa))
     require(toExplore.forall(s => nfa.allStates.contains(s)))
@@ -1522,8 +1519,8 @@ object VerifiedNFAMatcher {
 
   } ensuring (epsilonClosure(nfa, toExplore, seen).content == (toExplore ++ seen).content)
 
-  @inlineOnce
-  @opaque
+  
+  
   def lemmaReadOneCharContainsOneStateIfOneTransition[C](nfa: NFA[C], transitionsRec: List[Transition[C]], startStates: List[State], c: C, acc: List[State], t: Transition[C], fromState: State, toState: State): Unit = {
     require(validNFA(nfa))
     require(ListSpecs.noDuplicate(startStates))
@@ -1558,8 +1555,8 @@ object VerifiedNFAMatcher {
 
   } ensuring (readOneChar(nfa, transitionsRec, startStates, c, acc) == List(toState))
 
-  @inlineOnce
-  @opaque
+  
+  
   def lemmaReadOneCharContainsStateIfTransition[C](nfa: NFA[C], transitionsRec: List[Transition[C]], startStates: List[State], c: C, acc: List[State], t: Transition[C], fromState: State, toState: State): Unit = {
     require(validNFA(nfa))
     require(ListSpecs.noDuplicate(startStates))
@@ -1592,8 +1589,8 @@ object VerifiedNFAMatcher {
 
   } ensuring (readOneChar(nfa, transitionsRec, startStates, c, acc).contains(toState))
 
-  @inlineOnce
-  @opaque
+  
+  
   def lemmaEpsilonClosureContainsToExploreStates[C](nfa: NFA[C], toExplore: List[State], seen: List[State], st: State): Unit = {
     require(validNFA(nfa))
     require(toExplore.forall(s => nfa.allStates.contains(s)))
@@ -1652,8 +1649,8 @@ object VerifiedNFAMatcher {
 
   } ensuring (epsilonClosure(nfa, toExplore, seen).contains(st))
 
-  @inlineOnce
-  @opaque
+  
+  
   def lemmaTransNotContainsEpsilonTrToThenClosureNotContains[C](nfa: NFA[C], toExplore: List[State], seen: List[State], sTo: State): Unit = {
     require(validNFA(nfa))
     require(noEpsilonTransitionTo(nfa.transitions, sTo))
@@ -1707,8 +1704,8 @@ object VerifiedNFAMatcher {
 
   } ensuring (!epsilonClosure(nfa, toExplore, seen).contains(sTo))
 
-  @inlineOnce
-  @opaque
+  
+  
   def lemmaTransNotContainsEpsilonTrToThenUnseenReachableNotContains[C](
       allTransitions: List[Transition[C]],
       transitions: List[Transition[C]],
@@ -1738,8 +1735,8 @@ object VerifiedNFAMatcher {
   // LEMMAS FOR ELEMENT MATCH EQUIV -- END   -----------------------------------------------------------------------------------------------------
   // LEMMAS FOR EMPTY EXPR EQUIV -- BEGIN --------------------------------------------------------------------------------------------------------
 
-  @inlineOnce
-  @opaque
+  
+  
   def lemmaEmptyExprRegexNFAEquiv[C](r: Regex[C], s: List[C]): Unit = {
     require(validRegex(r))
     require(isEmptyExpr(r))
@@ -1769,6 +1766,7 @@ object VerifiedNFAMatcher {
     if (s.isEmpty) {
       lemmaListContainsThenFilterContainsNotEmpty(currentStatesEpsilonClosure, nfa.finalStates, finalState)
     } else {
+      ListUtils.lemmaSubseqRefl(nfa.transitions)
       val nextChar = suffix.head
       val newPastChars = pastChars ++ List(nextChar)
       val newSuffix = suffix.tail
@@ -1782,8 +1780,8 @@ object VerifiedNFAMatcher {
 
   } ensuring (matchNFA(fromRegexToNfa(r), s) == matchRSpec(r, s))
 
-  @inlineOnce
-  @opaque
+  
+  
   def lemmaTransContainsEpsilonTrThenClosureContainsState[C](nfa: NFA[C], toExplore: List[State], seen: List[State], sFrom: State, sTo: State, t: Transition[C]): Unit = {
     require(validNFA(nfa))
     require(nfa.transitions.contains(t))
@@ -1863,8 +1861,8 @@ object VerifiedNFAMatcher {
 
   } ensuring (epsilonClosure(nfa, toExplore, seen).contains(sTo))
 
-  @inlineOnce
-  @opaque
+  
+  
   def lemmaTransitionsContainsEpsilonThenInEpsilonTransitionsFrom[C](state: State, transitions: List[Transition[C]], t: Transition[C]): Unit = {
     require(ListSpecs.noDuplicate(transitions))
     require(transitions.contains(t))
@@ -1886,8 +1884,8 @@ object VerifiedNFAMatcher {
 
   } ensuring (epsilonTransitionsFrom(state, transitions).contains(t))
 
-  @inlineOnce
-  @opaque
+  
+  
   def lemmaTransContainsEpsilonTrThenUnseenReachableContainsState[C](
       allTransitions: List[Transition[C]],
       transitions: List[Transition[C]],
@@ -1928,8 +1926,8 @@ object VerifiedNFAMatcher {
   // LEMMAS FOR EMPTY EXPR EQUIV -- END ----------------------------------------------------------------------------------------------------------
 
   // LEMMAS FOR EMPTY LANG EQUIV -- BEGIN --------------------------------------------------------------------------------------------------------
-  @inlineOnce
-  @opaque
+  
+  
   def lemmaFromErrorStateMatchesNothing[C](nfa: NFA[C], s: List[C], pastChars: List[C], suffix: List[C]): Unit = {
     require(validNFA(nfa))
     require(pastChars ++ suffix == s)
@@ -1959,8 +1957,8 @@ object VerifiedNFAMatcher {
 
   } ensuring (!matchNFAInner(nfa, s, List(nfa.errorState), pastChars, suffix))
 
-  @inlineOnce
-  @opaque
+  
+  
   def lemmaFromNilMatchesNothing[C](nfa: NFA[C], s: List[C], pastChars: List[C], suffix: List[C]): Unit = {
     require(validNFA(nfa))
     require(pastChars ++ suffix == s)
@@ -1991,8 +1989,8 @@ object VerifiedNFAMatcher {
 
   } ensuring (!matchNFAInner(nfa, s, Nil(), pastChars, suffix))
 
-  @inlineOnce
-  @opaque
+  
+  
   def lemmaReadOneCharFromNilReturnsNil[C](nfa: NFA[C], transitionsRec: List[Transition[C]], startStates: List[State], c: C, acc: List[State]): Unit = {
     require(validNFA(nfa))
     require(ListSpecs.noDuplicate(startStates))
@@ -2018,8 +2016,8 @@ object VerifiedNFAMatcher {
     }
   } ensuring (readOneChar(nfa, transitionsRec, startStates, c, acc).isEmpty)
 
-  @inlineOnce
-  @opaque
+  
+  
   def lemmaReadOneCharFromErrorStateReturnsNil[C](nfa: NFA[C], transitionsRec: List[Transition[C]], startStates: List[State], c: C, acc: List[State]): Unit = {
     require(validNFA(nfa))
     require(ListSpecs.noDuplicate(startStates))
@@ -2048,8 +2046,8 @@ object VerifiedNFAMatcher {
     }
   } ensuring (readOneChar(nfa, transitionsRec, startStates, c, acc).isEmpty)
 
-  @inlineOnce
-  @opaque
+  
+  
   def lemmaEpsilonClosureFromErrorIsOnlyError[C](nfa: NFA[C], toExplore: List[State], seen: List[State]): Unit = {
     require(validNFA(nfa))
     require(toExplore.forall(s => nfa.allStates.contains(s)))
@@ -2081,16 +2079,16 @@ object VerifiedNFAMatcher {
 
   } ensuring (epsilonClosure(nfa, toExplore, seen) == List(nfa.errorState))
 
-  @inlineOnce
-  @opaque
+  
+  
   def lemmaNotTransitionOutOfErrorStateThenTransFromErrorNil[C](errorState: State, @induct transitions: List[Transition[C]]): Unit = {
     require(noTransitionOutOfErrorState(transitions, errorState))
     require(ListSpecs.noDuplicate(transitions))
 
   } ensuring (transitionsFrom(errorState, transitions).isEmpty)
 
-  @inlineOnce
-  @opaque
+  
+  
   def lemmaEmptyLangRegexNFAEquiv[C](r: Regex[C], s: List[C]): Unit = {
     require(validRegex(r))
     require(isEmptyLang(r))
@@ -2103,8 +2101,8 @@ object VerifiedNFAMatcher {
 
   // LEMMAS FOR EMPTY LANG EQUIV -- END --------------------------------------------------------------------------------------------------------
 
-  @inlineOnce
-  @opaque
+  
+  
   def lemmaForallContainsTransitionToPreservedAddingInRef[C](@induct l: List[State], lRef: List[Transition[C]], t: Transition[C], state: State): Unit = {
     require(l.forall(s => lRef.contains(EpsilonTransition(state, s))))
 
@@ -2115,7 +2113,7 @@ object VerifiedNFAMatcher {
     ()
   } ensuring (b)
 
-  @inline
+
   def findLongestMatch[C](nfa: NFA[C], input: List[C]): (List[C], List[C]) = {
     require(validNFA(nfa))
     findLongestMatchInner(nfa, List(nfa.startState), Nil(), input)

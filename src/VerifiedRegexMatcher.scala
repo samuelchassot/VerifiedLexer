@@ -183,7 +183,6 @@ object VerifiedRegexMatcher {
     }
   )
 
-  @inlineOnce
   def matchRSpec[C](r: Regex[C], s: List[C]): Boolean = {
     require(validRegex(r))
     decreases(s.size + regexDepth(r))
@@ -287,7 +286,6 @@ object VerifiedRegexMatcher {
 
   } ensuring (res => (res.isDefined && matchR(r1, res.get._1) && matchR(r2, res.get._2) && res.get._1 ++ res.get._2 == s) || !res.isDefined)
 
-  @inline
   def findLongestMatch[C](r: Regex[C], input: List[C]): (List[C], List[C]) = {
     require(validRegex(r))
     findLongestMatchInner(r, Nil(), input)
