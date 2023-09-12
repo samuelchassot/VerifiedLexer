@@ -930,6 +930,14 @@ object ListUtils {
 
   @inlineOnce
   @opaque
+  def lemmaForallNotContainsForConcat[B](@induct l: List[B], l12: List[B], l1: List[B], l2: List[B]): Unit = {
+    require(l.forall(b => !(l12).contains(b)))
+    require(l12 == l1 ++ l2)
+
+  } ensuring (l.forall(b => !(l1 ++ l2).contains(b)))
+
+  @inlineOnce
+  @opaque
   def lemmaForallNotContainsForConcat[B](@induct l1: List[B], l2: List[B], lRef: List[B]): Unit = {
     require(l1.forall(b => !lRef.contains(b)))
     require(l2.forall(b => !lRef.contains(b)))
@@ -1040,6 +1048,7 @@ object ListUtils {
     l match {
       case Cons(hd, tl) => {
         assert(l == List(hd) ++ tl) // required for stainless
+        lemmaForallNotContainsForConcat(lB, l, List(hd), tl)
         lemmaForallNotContainsForSubseq(lB, List(hd), tl)
         noDuplicateConcatListNotContainedPreservesBis(tl, lB)
       }
@@ -1073,9 +1082,8 @@ object ListUtils {
         assert(!newL1.contains(hd))
         assert(ListSpecs.noDuplicate(newL1))
         assert(newL1.forall(b => l2.contains(b)))
-        lemmaForallContainsPreservedRemoveElmtInRefList(newL1, l2, l2 - hd, hd)
-        assert(newL1.forall(bb => (l2 - hd).contains(bb)))
         val l2RemHd = l2 - hd
+        lemmaForallContainsPreservedRemoveElmtInRefList(newL1, l2, l2RemHd, hd)
         check(newL1.forall(b => l2RemHd.contains(b)))
         lemmaForallContainsAndNoDuplicateThenSmallerList(l2RemHd, newL1)
         assert((l2 - hd).size >= newL1.size)

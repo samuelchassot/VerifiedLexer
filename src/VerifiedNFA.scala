@@ -913,14 +913,18 @@ object VerifiedNFAMatcher {
         } else {
           ListUtils.lemmaTailIsSubseqOfListBis(epsilonTransitionsFrom(hd, nfa.transitions))
           ListUtils.lemmaForallContainsConcatPreserves(toExplore, seen, nfa.allStates)
-          val reachableFromHd: List[State] = unseenReachableStatesThroughEpsilon(nfa.transitions, epsilonTransitionsFrom(hd, nfa.transitions), hd, toExplore ++ seen, nfa.allStates)
+          val seenArg = toExplore ++ seen
+          val reachableFromHd: List[State] = unseenReachableStatesThroughEpsilon(nfa.transitions, epsilonTransitionsFrom(hd, nfa.transitions), hd, seenArg, nfa.allStates)
           val newToExplore = tl ++ reachableFromHd
           val newSeen = Cons(hd, seen)
 
           // LEMMAS ------------------------------------------------------------------------------------------------------------------------
-
+          ListUtils.lemmaForallNotContainsForConcat(reachableFromHd, seenArg, toExplore, seen)
+          check(reachableFromHd.forall(s => !(toExplore ++ seen).contains(s)))
           ListUtils.lemmaForallNotContainsForSubseq(reachableFromHd, toExplore, seen)
+          
           assert(toExplore == List(hd) ++ tl) // it helps Stainless
+          ListUtils.lemmaForallNotContainsForConcat(reachableFromHd, toExplore, List(hd), tl)
           ListUtils.lemmaForallNotContainsForSubseq(reachableFromHd, List(hd), tl)
           ListUtils.noDuplicateConcatListNotContainedPreserves(tl, reachableFromHd)
           ListUtils.lemmaNoDuplicatePreservedSameContent(reachableFromHd ++ tl, tl ++ reachableFromHd)
@@ -1114,9 +1118,49 @@ object VerifiedNFAMatcher {
     }
     check(matchNFA(fromRegexToNfa(r1), s) == matchRSpec(r1, s))
 
-    // val (ste2, statesAfter2, transitionsAfter2, stout2) = go(r2)(statesAfter1, transitionsAfter1, errorState)
+    val nfaR2 = fromRegexToNfa(r2)
 
-    assume(matchNFA(fromRegexToNfa(r), s) == matchRSpec(r, s))
+    r2 match {
+      case EmptyExpr() => {
+        lemmaEmptyExprRegexNFAEquiv(r2, s)
+        check(matchNFA(fromRegexToNfa(r2), s) == matchRSpec(r2, s))
+      }
+      case EmptyLang() => {
+        lemmaEmptyLangRegexNFAEquiv(r2, s)
+        check(matchNFA(fromRegexToNfa(r2), s) == matchRSpec(r2, s))
+      }
+      case ElementMatch(c) => {
+        lemmaElementMatchRegexNFAEquiv(r2, s, c)
+        check(matchNFA(fromRegexToNfa(r2), s) == matchRSpec(r2, s))
+      }
+      case Union(rOne, rTwo) => {
+        lemmaUnionMatchRegexNFAEquiv(r2, rOne, rTwo, s)
+        check(matchNFA(fromRegexToNfa(r2), s) == matchRSpec(r2, s))
+      }
+      case Star(rInner) => {
+        lemmaStarMatchRegexNFAEquiv(rInner, s)
+        check(matchNFA(fromRegexToNfa(r2), s) == matchRSpec(r2, s))
+      }
+      case Concat(rOne, rTwo) => {
+        lemmaConcatMatchRegexNFAEquiv(rOne, rTwo, s)
+        check(matchNFA(fromRegexToNfa(r2), s) == matchRSpec(r2, s))
+      }
+    }
+    check(matchNFA(fromRegexToNfa(r2), s) == matchRSpec(r2, s))
+    
+    val (ste2, statesAfter2, transitionsAfter2, stout2) = go(r2)(statesAfter1, transitionsAfter1, errorState)
+    
+    // lemmaSameTransitionContentThenSameTransitionsStatesContent(transitions, ListUtils.removeDuplicates(transitions, transitions))
+    // ListUtils.lemmaForallContainsPreservedIfSameContent(transitionsStates(transitions), transitionsStates(ListUtils.removeDuplicates(transitions, transitions)), allStates)
+
+    // lemmaSameTransitionsContentOutOfErrorStatePreserved(transitions, ListUtils.removeDuplicates(transitions, transitions), errorState)
+    // assert(noTransitionOutOfErrorState(ListUtils.removeDuplicates(transitions, transitions), errorState))
+
+    // val nfaR2AfterR1 = NFA(ste2, List(finalState), errorState, ListUtils.removeDuplicates(transitionsAfter2, transitionsAfter2), statesAfter2)
+    // check(matchNFA(nfaR2AfterR1, s) == matchRSpec(r2, s))
+    
+    
+    check(matchNFA(fromRegexToNfa(r), s) == matchRSpec(r, s))
 
   } ensuring (matchNFA(fromRegexToNfa(r), s) == matchRSpec(r, s))
   // LEMMAS FOR UNION EQUIV -- END ---------------------------------------------------------------------------------------------------------------
@@ -1225,11 +1269,14 @@ object VerifiedNFAMatcher {
     check(!currentStatesEpsilonClosure.contains(stout))
     check(!currentStatesEpsilonClosure.contains(errorState))
 
+    check(nfa.startState == ste)
     check(nfa.finalStates == Cons(stout, Nil()))
 
     s match {
       case Nil() => {
         ListUtils.lemmaListNotContainsThenFilterContainsEmpty(currentStatesEpsilonClosure, nfa.finalStates, stout)
+        
+        check(matchNFA(fromRegexToNfa(r), s) == matchNFAInner(fromRegexToNfa(r), s, List(ste), Nil(), s))
         check(matchNFA(fromRegexToNfa(r), s) == matchRSpec(r, s))
       }
       case Cons(cc, Nil()) if c == cc => {
@@ -1484,15 +1531,20 @@ object VerifiedNFAMatcher {
           lemmaEpsilonTransitionFromEmptyIfNoEpsilonTrInList(nfa.transitions, hd)
           assert(epsilonTransitionsFrom(hd, nfa.transitions).isEmpty) // TODO
 
-          val reachableFromHd: List[State] = unseenReachableStatesThroughEpsilon(nfa.transitions, epsilonTransitionsFrom(hd, nfa.transitions), hd, toExplore ++ seen, nfa.allStates)
+          val seenArg = toExplore ++ seen
+          val reachableFromHd: List[State] = unseenReachableStatesThroughEpsilon(nfa.transitions, epsilonTransitionsFrom(hd, nfa.transitions), hd, seenArg, nfa.allStates)
           val newToExplore = tl ++ reachableFromHd
           val newSeen = Cons(hd, seen)
 
           assert(reachableFromHd.isEmpty)
 
+          ListUtils.lemmaForallNotContainsForConcat(reachableFromHd, seenArg, toExplore, seen)
           ListUtils.lemmaForallNotContainsForSubseq(reachableFromHd, toExplore, seen)
+          
           assert(toExplore == List(hd) ++ tl) // it helps Stainless
+          ListUtils.lemmaForallNotContainsForConcat(reachableFromHd, toExplore, List(hd), tl)
           ListUtils.lemmaForallNotContainsForSubseq(reachableFromHd, List(hd), tl)
+          
           ListUtils.noDuplicateConcatListNotContainedPreserves(tl, reachableFromHd)
           ListUtils.lemmaNoDuplicatePreservedSameContent(reachableFromHd ++ tl, tl ++ reachableFromHd)
 
@@ -1613,14 +1665,20 @@ object VerifiedNFAMatcher {
         } else {
           ListUtils.lemmaTailIsSubseqOfListBis(epsilonTransitionsFrom(hd, nfa.transitions))
           ListUtils.lemmaForallContainsConcatPreserves(toExplore, seen, nfa.allStates)
-          val reachableFromHd: List[State] = unseenReachableStatesThroughEpsilon(nfa.transitions, epsilonTransitionsFrom(hd, nfa.transitions), hd, toExplore ++ seen, nfa.allStates)
+          val seenArg = toExplore ++ seen
+          val reachableFromHd: List[State] = unseenReachableStatesThroughEpsilon(nfa.transitions, epsilonTransitionsFrom(hd, nfa.transitions), hd, seenArg, nfa.allStates)
           val newToExplore = tl ++ reachableFromHd
           val newSeen = Cons(hd, seen)
 
           // LEMMAS ------------------------------------------------------------------------------------------------------------------------
-
+          check(reachableFromHd.forall(s => !seenArg.contains(s)))
+          assert(seenArg == toExplore ++ seen)
+          ListUtils.lemmaForallNotContainsForConcat(reachableFromHd, seenArg, toExplore, seen)
+          check(reachableFromHd.forall(s => !(toExplore ++ seen).contains(s)))
           ListUtils.lemmaForallNotContainsForSubseq(reachableFromHd, toExplore, seen)
+          
           assert(toExplore == List(hd) ++ tl) // it helps Stainless
+           ListUtils.lemmaForallNotContainsForConcat(reachableFromHd, toExplore, List(hd), tl)
           ListUtils.lemmaForallNotContainsForSubseq(reachableFromHd, List(hd), tl)
           ListUtils.noDuplicateConcatListNotContainedPreserves(tl, reachableFromHd)
           ListUtils.lemmaNoDuplicatePreservedSameContent(reachableFromHd ++ tl, tl ++ reachableFromHd)
@@ -1674,13 +1732,19 @@ object VerifiedNFAMatcher {
         } else {
           ListUtils.lemmaTailIsSubseqOfListBis(epsilonTransitionsFrom(hd, nfa.transitions))
           ListUtils.lemmaForallContainsConcatPreserves(toExplore, seen, nfa.allStates)
-          val reachableFromHd: List[State] = unseenReachableStatesThroughEpsilon(nfa.transitions, epsilonTransitionsFrom(hd, nfa.transitions), hd, toExplore ++ seen, nfa.allStates)
+
+          val seenArg = toExplore ++ seen
+          val reachableFromHd: List[State] = unseenReachableStatesThroughEpsilon(nfa.transitions, epsilonTransitionsFrom(hd, nfa.transitions), hd, seenArg, nfa.allStates)
           val newToExplore = tl ++ reachableFromHd
           val newSeen = Cons(hd, seen)
 
+          ListUtils.lemmaForallNotContainsForConcat(reachableFromHd, seenArg, toExplore, seen)
           ListUtils.lemmaForallNotContainsForSubseq(reachableFromHd, toExplore, seen)
+          
           assert(toExplore == List(hd) ++ tl) // it helps Stainless
+          ListUtils.lemmaForallNotContainsForConcat(reachableFromHd, toExplore, List(hd), tl)
           ListUtils.lemmaForallNotContainsForSubseq(reachableFromHd, List(hd), tl)
+          
           ListUtils.noDuplicateConcatListNotContainedPreserves(tl, reachableFromHd)
           ListUtils.lemmaNoDuplicatePreservedSameContent(reachableFromHd ++ tl, tl ++ reachableFromHd)
 
@@ -1761,6 +1825,8 @@ object VerifiedNFAMatcher {
     assert(nfa.transitions.size == 1)
     val t = EpsilonTransition[C](nfa.startState, finalState)
 
+    assert(nfa.transitions == List(t))
+
     lemmaTransContainsEpsilonTrThenClosureContainsState(nfa, currentStates, Nil(), nfa.startState, finalState, t)
 
     if (s.isEmpty) {
@@ -1809,12 +1875,21 @@ object VerifiedNFAMatcher {
         } else {
           ListUtils.lemmaTailIsSubseqOfListBis(epsilonTransitionsFrom(hd, nfa.transitions))
           ListUtils.lemmaForallContainsConcatPreserves(toExplore, seen, nfa.allStates)
-          val reachableFromHd: List[State] = unseenReachableStatesThroughEpsilon(nfa.transitions, epsilonTransitionsFrom(hd, nfa.transitions), hd, toExplore ++ seen, nfa.allStates)
+
+          val seenArg = toExplore ++ seen
+          val reachableFromHd: List[State] = unseenReachableStatesThroughEpsilon(nfa.transitions, epsilonTransitionsFrom(hd, nfa.transitions), hd, seenArg, nfa.allStates)
           val newToExplore = tl ++ reachableFromHd
           val newSeen = Cons(hd, seen)
 
+          ListUtils.lemmaForallNotContainsForConcat(reachableFromHd, seenArg, toExplore, seen)
           ListUtils.lemmaForallNotContainsForSubseq(reachableFromHd, toExplore, seen)
+          
+          
+          ListUtils.lemmaForallNotContainsForConcat(reachableFromHd, toExplore, List(hd), tl)
           assert(toExplore == List(hd) ++ tl) // it helps Stainless
+          check(reachableFromHd.forall(b => !(toExplore).contains(b)))
+          check(toExplore == List(hd) ++ tl)
+          check(reachableFromHd.forall(b => !(List(hd) ++ tl).contains(b)))
           ListUtils.lemmaForallNotContainsForSubseq(reachableFromHd, List(hd), tl)
           ListUtils.noDuplicateConcatListNotContainedPreserves(tl, reachableFromHd)
           ListUtils.lemmaNoDuplicatePreservedSameContent(reachableFromHd ++ tl, tl ++ reachableFromHd)
