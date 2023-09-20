@@ -28,6 +28,9 @@ RUN apt-get install -y gcc
 RUN apt-get install -y gdb 
 
 
+RUN apt-get install -y z3
+RUN apt-get install -y cvc4
+
 ENV SDKMAN_DIR /tools/.sdkman
 ENV SCALA_VERSION 3.3.0 
 ENV JAVA_VERSION 17-open
