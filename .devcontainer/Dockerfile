@@ -26,6 +26,8 @@ RUN apt-get install -y python3 python3-pip
 RUN apt-get install -y jq 
 RUN apt-get install -y gcc 
 RUN apt-get install -y gdb 
+RUN apt-get update --fix-missing
+RUN apt-get install -y ssh
 
 
 RUN apt-get install -y z3
