@@ -26,9 +26,9 @@ def delete_current_cache():
     os.system("rm -rf .stainless-cache")
 
 
-def store_cache_away(cache_file_backup_name: str):
+def store_cache_away(cache_file_backup_name: str, dest_folder: str):
     os.system(
-        f"cp -r .stainless-cache/vccache.bin .stainless-cache/{cache_file_backup_name}"
+        f"cp -r .stainless-cache/vccache.bin {dest_folder}/{cache_file_backup_name}"
     )
 
 
@@ -56,7 +56,9 @@ if __name__ == "__main__":
     delete_current_cache()
     n = int(sys.argv[1])
     run_verification(logs_file_name(0))
-    store_cache_away(cache_backup_file_name)
+    store_cache_away(cache_backup_file_name, logs_folder)
+    store_cache_away(cache_backup_file_name, ".stainless-cache")
     for i in range(1, n + 1):
         replace_cache_with_backup(cache_backup_file_name)
         run_verification(logs_file_name(i))
+        store_cache_away(cache_backup_file_name + "_" + logs_file_name(i), logs_folder)
