@@ -224,10 +224,13 @@ object VerifiedFunLexer {
     def noDuplicateTag[C](
         rules: List[Rule[C]],
         acc: List[String] = Nil()
-    ): Boolean = rules match {
-      case Nil() => true
-      case Cons(hd, tl) =>
-        !acc.contains(hd.tag) && noDuplicateTag(tl, Cons(hd.tag, acc))
+    ): Boolean = {
+      decreases(rules)
+      rules match {
+        case Nil() => true
+        case Cons(hd, tl) =>
+          !acc.contains(hd.tag) && noDuplicateTag(tl, Cons(hd.tag, acc))
+      }
     }
     def rulesValid[C](rs: List[Rule[C]]): Boolean = {
       rs match {
@@ -301,6 +304,7 @@ object VerifiedFunLexer {
       * @param l
       */
     def print[C](l: List[Token[C]]): List[C] = {
+      decreases(l)
       l match {
         case Cons(hd, tl) => hd.characters ++ print(tl)
         case Nil()        => Nil[C]()
@@ -317,6 +321,7 @@ object VerifiedFunLexer {
         separatorToken: Token[C]
     ): List[C] = {
       require(separatorToken.isSeparator)
+      decreases(l)
       l match {
         case Cons(hd, tl) =>
           hd.characters ++ separatorToken.characters ++ printWithSeparatorToken(
@@ -604,6 +609,7 @@ object VerifiedFunLexer {
         )
         getRuleFromTag(rules, separatorToken.tag).get.isSeparator
       })
+      decreases(tokens)
 
       tokens match {
         case Cons(hd, tl) => {
@@ -1223,6 +1229,7 @@ object VerifiedFunLexer {
       require(ListUtils.getIndex(rules, rBis) < ListUtils.getIndex(rules, r))
       require(ruleValid(r))
       require(matchNFA(r.nfa, p))
+      decreases(rules)
 
       assert(ListUtils.getIndex(rules, rBis) < ListUtils.getIndex(rules, r))
 
@@ -1572,6 +1579,7 @@ object VerifiedFunLexer {
     ): Unit = {
       require(!rTail.isEmpty)
       require(rulesInvariant(Cons(rHead, rTail)))
+      decreases(rTail)
 
       rTail match {
         case Cons(hd, tl) => {
@@ -1691,6 +1699,8 @@ object VerifiedFunLexer {
       require(rules.contains(r))
 
       require(maxPrefix(rules, input).isEmpty)
+
+      decreases(rules)
 
       lemmaRuleInListAndRulesValidThenRuleIsValid(r, rules)
 
@@ -1820,6 +1830,7 @@ object VerifiedFunLexer {
     ): Unit = {
       require(noDuplicateTag(l, acc))
       require(acc.content == newAcc.content)
+      decreases(l)
 
       l match {
         case Cons(hd, tl) => {
@@ -1881,6 +1892,7 @@ object VerifiedFunLexer {
       require(noDuplicateTag(rules))
       require(ListUtils.getIndex(rules, r1) < ListUtils.getIndex(rules, r2))
 
+      decreases(rules)
       if (rules.head == r1) {
         lemmaNoDuplicateAndTagInAccThenRuleCannotHaveSame(
           rules.tail,
@@ -1935,6 +1947,7 @@ object VerifiedFunLexer {
       require(rulesInvariant(rules))
       require(tokens.contains(t))
       require(rulesProduceEachTokenIndividually(rules, tokens))
+      decreases(tokens)
 
       tokens match {
         case Cons(hd, tl) if hd == t => ()

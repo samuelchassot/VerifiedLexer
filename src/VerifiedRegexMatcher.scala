@@ -19,14 +19,17 @@ object RegularExpression {
     case EmptyLang()        => true
   }
 
-  def regexDepth[C](r: Regex[C]): BigInt = r match {
+  def regexDepth[C](r: Regex[C]): BigInt ={
+    decreases(r)
+     r match {
     case ElementMatch(c)    => BigInt(1)
     case Star(r)            => BigInt(1) + regexDepth(r)
     case Union(rOne, rTwo)  => BigInt(1) + Utils.maxBigInt(regexDepth(rOne), regexDepth(rTwo))
     case Concat(rOne, rTwo) => BigInt(1) + Utils.maxBigInt(regexDepth(rOne), regexDepth(rTwo))
     case EmptyExpr()        => BigInt(1)
     case EmptyLang()        => BigInt(1)
-  } ensuring (res =>
+  }
+} ensuring (res =>
     res > 0 && (r match {
       case Union(rOne, rTwo)  => res > regexDepth(rOne) && res > regexDepth(rTwo)
       case Concat(rOne, rTwo) => res > regexDepth(rOne) && res > regexDepth(rTwo)
@@ -147,6 +150,7 @@ object VerifiedRegexMatcher {
 
   def derivativeStep[C](r: Regex[C], a: C): Regex[C] = {
     require(validRegex(r))
+    decreases(r)
     val res: Regex[C] = r match {
       case EmptyExpr()       => EmptyLang()
       case EmptyLang()       => EmptyLang()
@@ -579,6 +583,7 @@ object VerifiedRegexMatcher {
     require(validRegex(r1) && validRegex(r2))
     require(matchR(r1, s1))
     require(matchR(r2, s2))
+    decreases(s1)
 
     s1 match {
       case Cons(hd, tl) => {
@@ -673,6 +678,7 @@ object VerifiedRegexMatcher {
     require(validRegex(r1))
     require(validRegex(r2))
     require(matchR(Concat(r1, r2), s))
+    decreases(s)
 
     val r = Concat(r1, r2)
     s match {
@@ -751,6 +757,7 @@ object VerifiedRegexMatcher {
     require(validRegex(r))
     require(s.contains(c))
     require(!usedCharacters(r).contains(c))
+    decreases(s)
 
     s match {
       case Cons(hd, tl) if hd == c => lemmaRegexCannotMatchAStringStartingWithACharItDoesNotContain(r, s, c)
@@ -796,6 +803,7 @@ object VerifiedRegexMatcher {
     require(validRegex(r))
     require(!nullable(r))
     require(nullable(derivativeStep(r, c)))
+    decreases(r)
 
     r match {
       case EmptyExpr()     => check(false)
@@ -837,6 +845,7 @@ object VerifiedRegexMatcher {
   def lemmaDerivativeAfterDerivativeStepIsNullableThenUsedCharsContainsHead[C](r: Regex[C], c: C, tl: List[C]): Unit = {
     require(validRegex(r))
     require(nullable(derivative(derivativeStep(r, c), tl)))
+    decreases(r)
 
     r match {
       case EmptyExpr() => {
@@ -978,6 +987,7 @@ object VerifiedRegexMatcher {
   def lemmaUsedCharsContainsAllFirstChars[C](r: Regex[C], c: C): Unit = {
     require(validRegex(r))
     require(firstChars(r).contains(c))
+    decreases(r)
     r match {
       case EmptyExpr()     => ()
       case EmptyLang()     => ()
