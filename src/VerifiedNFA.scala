@@ -466,8 +466,6 @@ object VerifiedNFA {
   }
 
   // go function lemmas -------------------------------------------------------------------------------------------------------------------------------------------
-
-  
   
   def lemmaAddTransitionNotFromErrorStatePreserves[C](@induct transitions: List[Transition[C]], t: Transition[C], errorState: State): Unit = {
     require(!transitionFromEq(t, errorState))
